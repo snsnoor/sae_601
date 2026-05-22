@@ -24,30 +24,65 @@ nombre_lignes = con.execute("SELECT COUNT(*) FROM adresses").fetchone()[0]
 print(f"Succès ! La table 'adresses' contient {nombre_lignes} lignes.")
 
 # ------------------- 'dvf' (Téléchargement & Intégration) -------------------
-url = "https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres/20260405-002321/valeursfoncieres-2025.txt.zip"
-zip_path = "valeursfoncieres-2025.zip"
 
-print("Téléchargement des données DVF...")
-urllib.request.urlretrieve(url, zip_path)
-
-with zipfile.ZipFile(zip_path, 'r') as z:
-    z.extractall(".")
-    txt_path = z.namelist()[0]
-
-print(f"Chargement de {txt_path} dans la base...")
-con.execute(f"""
-    CREATE OR REPLACE TABLE dvf AS
-    SELECT * FROM read_csv_auto('{txt_path}', delim='|', header=True, ignore_errors=True)
+con.execute("""
+    CREATE TABLE dvf AS
+    SELECT
+        date_mutation, valeur_fonciere, surface_reelle_bati,
+        adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
+        nombre_pieces_principales, type_local, nature_mutation,
+        longitude, latitude, code_commune, code_postal,
+        nom_commune, code_departement
+    FROM read_csv(
+        'https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres-geolocalisees/20260424-090024/dvf.csv.gz',
+        delim=',',
+        header=True,
+        ignore_errors=True
+    )
+    WHERE YEAR(CAST(date_mutation AS DATE)) IN (2024, 2025)
+    AND valeur_fonciere IS NOT NULL
 """)
 
-# Nettoyage rapide de la table DVF
-cols_numeric = ["Surface reelle bati", "Nombre pieces principales", "Code postal"]
-cols_text = ["Type local", "Code voie", "Voie"]
+total = con.execute("SELECT COUNT(*) FROM dvf").fetchone()[0]
+print(f"\n Nombre de lignes chargées : {total:,}")
 
+# --------Nettoyage et modification de la table DVF
+
+# Colonnes numériques : 0
+cols_numeric = ["surface_reelle_bati", "nombre_pieces_principales",
+                "longitude", "latitude", "adresse_numero"]
 for col in cols_numeric:
     con.execute(f'UPDATE dvf SET "{col}" = 0 WHERE "{col}" IS NULL')
+
+# Colonnes texte : 'NR'
+cols_text = ["type_local", "adresse_code_voie", "adresse_nom_voie",
+             "adresse_suffixe", "code_postal"]
 for col in cols_text:
-    con.execute(f'UPDATE dvf SET "{col}" = \'NR\' WHERE "{col}" IS NULL')
+    con.execute(f"UPDATE dvf SET \"{col}\" = 'NR' WHERE \"{col}\" IS NULL")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 print("Table 'dvf' créée et nettoyée.")
 
