@@ -2,5 +2,8 @@ ValeursFoncieres-2025.txt
 valeursfoncieres-2025.zip
 dpe.csv
 info_appart.duckdb
+info_appart_2.duckdb
+info_appart_test.duckdb
+info_appart_test.duckdb.wal
 data/*
 .vscode/*
