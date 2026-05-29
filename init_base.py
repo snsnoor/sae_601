@@ -46,7 +46,11 @@ for col in cols_text:
 
 print("Table 'dvf' créée et nettoyée.")
 
+
+# -------------------------------------------------------
 # ------------------- 3. Table 'gares' -------------------
+# -------------------------------------------------------
+
 print("Téléchargement des données des gares SNCF...")
 base_url = "https://data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-gares/records"
 limit = 100
@@ -75,7 +79,10 @@ con.execute("CREATE OR REPLACE TABLE gares AS SELECT * FROM df_gares_temp")
 
 print(f"Table 'gares' créée avec {len(df_gares)} entrées.")
 
+
+# -------------------------------------------------------
 # ------------------- 4. Table 'iris' (GeoJSON) -------------------
+# -------------------------------------------------------
 print("Téléchargement et nettoyage des données GeoJSON...")
 url = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
 
@@ -115,11 +122,6 @@ con.register('df_iris_temp', df_iris_temp)
 con.execute("CREATE OR REPLACE TABLE iris AS SELECT * FROM df_iris_temp")
 print("Table 'iris' créée dans DuckDB.")
 
-
-
-#-------------------------------------------------------
-#Table dpe
-#-------------------------------------------------------
 
 
 #-------------------------------------------------------
