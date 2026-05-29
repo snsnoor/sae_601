@@ -44,11 +44,11 @@ The pipeline is structured in three stages:
 
 ### Stage 1 — Data Ingestion
 
-Raw data is collected from all sources and persisted to DuckDB raw tables. The DVF national file is loaded directly from its remote URL using DuckDB's native `read_csv` with streaming, filtered to 2024-2025 at load time to limit volume.
+Raw data is collected from all sources and persisted to DuckDB raw tables. The DVF national file and others are loaded directly from its remote URL using DuckDB's native `read_csv` with streaming, filtered to 2024-2025 at load time to limit volume.
 
 ### Stage 2 — Quality Control and Transformation
 
-This stage cleans and joins the raw sources into analysis-ready tables. Key steps include removing rows with null `valeur_fonciere`, replacing missing values, deduplicating DVF rows (multiple cadastral parcels per transaction), and filtering outliers such as 1€ family transfers or extreme price per m² values.
+This stage cleans and joins the raw sources into analysis-ready tables. Key steps include removing rows with null `valeur_fonciere`, replacing missing values, deduplicating rows, and filtering outliers.
 
 ### Stage 3 — Reporting (Streamlit)
 
@@ -56,19 +56,33 @@ The Streamlit dashboard exposes the clean, aggregated data through interactive v
 
 ## Getting Started
 
-### Prerequisites
+### 1. Install dependencies
+
+All required packages are listed in `requirements.txt`. Install them with:
 
 ```bash
-pip install duckdb pandas streamlit
+pip install -r requirements.txt
 ```
 
-### Run the ingestion and cleaning pipeline
+### 2. Download the data
+
+The source files are not included in this repository due to their size. Run the download script once to fetch them into the `data/` folder:
 
 ```bash
-python ingestion/load_dvf.py
+python download_data.py
 ```
 
-### Launch the Streamlit dashboard
+This will download all necessary files automatically. Already-downloaded files are skipped if you run it again.
+
+### 3. Run the scripts
+
+Execute the scripts in the following order:
+
+| Order | Script | Description |
+|---|---|---|
+| 1 | `init_base.py` | Loads, cleans, and builds all DuckDB tables from the source files |
+
+### 4. Launch the Streamlit dashboard
 
 ```bash
 streamlit run dashboard/app.py
