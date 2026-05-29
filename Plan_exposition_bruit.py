@@ -1,35 +1,22 @@
 import requests
-import geopandas as gpd
-from shapely.geometry import shape
 
 url = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
 
-response = requests.get(url)
-geojson_data = response.json()
+# Faire la requête GET pour récupérer les données
+reponse = requests.get(url)
 
-features_valides = []
-erreurs = 0
-
-for feature in geojson_data.get('features', []):
-    try:
-        if feature.get('geometry'):
-            geometrie = shape(feature['geometry']) 
-        
-        features_valides.append(feature)
-        
-    except Exception as e:
-        erreurs += 1
-
-geojson_propre = {
-    "type": "FeatureCollection",
-    "features": features_valides
-}
-
-print(f"Nettoyage terminé : {erreurs} géométrie(s) ignorée(s).")
-
-gdf = gpd.GeoDataFrame.from_features(geojson_propre)
-
-gdf.set_crs("EPSG:4326", inplace=True)
-
-print("\nSuccès ! Voici les premières lignes :")
-print(gdf.head())
+# Vérifier si la requête a réussi (code 200)
+if reponse.status_code == 200:
+    # Convertir la réponse en dictionnaire Python (JSON)
+    geojson_data = reponse.json()
+    print("Fichier GeoJSON importé avec succès !")
+    
+    # Afficher le type géométrique général et le nombre d'éléments
+    print(f"Type : {geojson_data.get('type')}")
+    print(f"Nombre de caractéristiques (features) : {len(geojson_data.get('features', []))}")
+    
+    # Afficher les propriétés du premier élément
+    if geojson_data.get('features'):
+        print("Propriétés du 1er élément :", geojson_data['features'][0]['properties'])
+else:
+    print(f"Erreur lors de l'importation. Code de statut : {reponse.status_code}")
