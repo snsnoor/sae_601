@@ -2,6 +2,8 @@ import duckdb
 import glob
 import requests
 import pandas as pd
+import geopandas as gpd
+from shapely.geometry import shape
 
 # Connexion à la base
 con = duckdb.connect('info_appart.duckdb')
@@ -12,6 +14,7 @@ con.execute("""
     CREATE OR REPLACE TABLE adresses AS 
     SELECT * FROM read_csv_auto('data/adresses-*.csv', sep=';', union_by_name=True, ignore_errors=True)
 """)
+print(f"Table 'adresses' créée avec {len(con.execute('SELECT * FROM adresses').fetchall())} entrées.")
 print(f"Table 'adresses' créée.")
 
 # ------------------- 2. Table 'dvf' -------------------
@@ -31,7 +34,7 @@ con.execute("""
     WHERE YEAR(CAST(date_mutation AS DATE)) IN (2024, 2025)
     AND valeur_fonciere IS NOT NULL
 """)
-
+print(f"Table 'dvf' créée avec {len(con.execute('SELECT * FROM dvf').fetchall())} entrées.")
 # Nettoyage
 cols_numeric = ["surface_reelle_bati", "nombre_pieces_principales", "longitude", "latitude", "adresse_numero"]
 cols_text = ["type_local", "adresse_code_voie", "adresse_nom_voie", "adresse_suffixe", "code_postal"]
@@ -72,5 +75,46 @@ con.execute("CREATE OR REPLACE TABLE gares AS SELECT * FROM df_gares_temp")
 
 print(f"Table 'gares' créée avec {len(df_gares)} entrées.")
 
+# ------------------- 4. Table 'iris' (GeoJSON) -------------------
+print("Téléchargement et nettoyage des données GeoJSON...")
+url = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
+
+response = requests.get(url)
+geojson_data = response.json()
+
+features_valides = []
+erreurs = 0
+
+for feature in geojson_data.get('features', []):
+    try:
+        if feature.get('geometry'):
+            geometrie = shape(feature['geometry']) 
+        
+        features_valides.append(feature)
+        
+    except Exception as e:
+        erreurs += 1
+
+geojson_propre = {
+    "type": "FeatureCollection",
+    "features": features_valides
+}
+
+print(f"Nettoyage terminé : {erreurs} géométrie(s) ignorée(s).")
+
+gdf = gpd.GeoDataFrame.from_features(geojson_propre)
+gdf.set_crs("EPSG:4326", inplace=True)
+
+print("\nSuccès ! Voici les premières lignes :")
+print(gdf.head())
+
+# Export du GeoDataFrame (converti en DataFrame classique) vers DuckDB
+df_iris_temp = pd.DataFrame(gdf.drop(columns='geometry'))
+# Note : On retire la colonne 'geometry' complexe car DuckDB natif gère mal les objets 'shape' sans extension spatiale.
+con.register('df_iris_temp', df_iris_temp)
+con.execute("CREATE OR REPLACE TABLE iris AS SELECT * FROM df_iris_temp")
+print("Table 'iris' créée dans DuckDB.")
+
+# Fermeture de la base
 con.close()
 print("Processus terminé.")
