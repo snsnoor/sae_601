@@ -31,9 +31,7 @@ The pipeline integrates seven public data sources:
 | DVF (geo-enriched) | All property sales in France with coordinates (2021-present) | CSV (.gz) | address + commune code |
 | DPE | Energy performance audits — rating A to G | CSV | address + commune code |
 | PEB (GeoRisques / DGAC) | Airport noise exposure zones (A, B, C, D) | JSON / GeoJSON | lat/lng (spatial join) |
-| INSEE | Median income, unemployment, population per commune | CSV / Excel | commune INSEE code |
 | BAN | National address database — address to GPS coordinates | CSV | address -> lat/lng |
-| Admin Boundaries (IGN) | Commune, department, region polygon geometries | GeoJSON / Shapefile | commune INSEE code |
 | Transport and Schools (SNCF / OSM) | Train station and school locations | JSON / REST API | lat/lng (proximity join) |
 
 The DVF geo-enriched file is the central fact table. All other sources are joined to it via commune code, normalized address, or spatial coordinates.
@@ -60,7 +58,7 @@ The Streamlit dashboard exposes the clean, aggregated data through interactive v
 
 All required packages are listed in `requirements.txt`. Install them with:
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
@@ -68,7 +66,7 @@ pip install -r requirements.txt
 
 The source files are not included in this repository due to their size. Run the download script once to fetch them into the `data/` folder:
 
-```bash
+```
 python download_data.py
 ```
 
@@ -76,15 +74,15 @@ This will download all necessary files automatically. Already-downloaded files a
 
 ### 3. Run the scripts
 
-Execute the scripts in the following order:
+This file loads, cleans, and builds all DuckDB tables from the source files
 
-| Order | Script | Description |
-|---|---|---|
-| 1 | `init_base.py` | Loads, cleans, and builds all DuckDB tables from the source files |
+```
+python init_base.py
+```
 
 ### 4. Launch the Streamlit dashboard
 
-```bash
+```
 streamlit run dashboard/app.py
 ```
 
