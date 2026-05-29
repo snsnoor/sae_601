@@ -1,0 +1,9 @@
+# --- Interface et Logique ---
+geopandas       # Manipulation et analyse de données géographiques (cartes, GeoJSON)
+pandas          # Manipulation de données tabulaires et fichiers Excel
+requests        # Envoi de requêtes HTTP pour télécharger des fichiers ou interroger des API
+shapely         # Manipulation et analyse de structures géométriques (calculs de polygones)
+streamlit       # Création de l'interface utilisateur web et interactive
+
+# --- Base de Données ---
+duckdb          # Base de données analytique locale rapide (alternative/connecteur SQL)
