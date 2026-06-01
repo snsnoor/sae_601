@@ -10,7 +10,7 @@ from urllib3.util.retry import Retry
 con = duckdb.connect('info_appart.duckdb')
 
 #-------------------------------------------------------
-# Table dpe — via API ADEME (2024-2025, régions 52 et 53)
+# Table dpe — via API ADEME (régions 52 et 53)
 #-------------------------------------------------------
 print("\nRécupération des données DPE via l'API ADEME (2024-2025)...")
 
@@ -50,23 +50,20 @@ def make_session():
     session.mount("https://", HTTPAdapter(max_retries=retry))
     return session
 
-def fetch_dpe_api(date_min: str, date_max: str, region: str) -> list:
+def fetch_dpe_api(region: str) -> list:
     session = make_session()
     all_results = []
     params = {
-        "date_etablissement_dpe_gte": date_min,
-        "date_etablissement_dpe_lte": date_max,
         "code_region_ban_eq": region,
         "select": ",".join(COLS_TO_KEEP),
         "size": PAGE_SIZE,
     }
 
-    # Premier appel
     resp = session.get(API_URL, params=params, timeout=120)
     resp.raise_for_status()
     data = resp.json()
     total = data.get("total", 0)
-    print(f"  → Région {region} | {date_min[:4]} : {total:,} DPE à récupérer")
+    print(f"  → Région {region} : {total:,} DPE à récupérer")  # ← ligne modifiée
 
     results = data.get("results", [])
     all_results.extend(results)
@@ -90,22 +87,20 @@ def fetch_dpe_api(date_min: str, date_max: str, region: str) -> list:
         all_results.extend(results)
         url = data.get("next")
 
-        # Affiche la progression toutes les 50 000 lignes ou à la fin
         if len(all_results) % 50000 < PAGE_SIZE or url is None:
             print(f"     {len(all_results):,} / {total:,}")
 
     return all_results
 
 
-# Récupération régions 52 (Pays de la Loire) et 53 (Bretagne), 2024 et 2025
+# Récupération régions 52 (Pays de la Loire) et 53 (Bretagne)
 all_results = []
-for region in ["52", "53"]:
-    for date_min, date_max in [("2024-01-01", "2024-12-31"), ("2025-01-01", "2025-12-31")]:
-        try:
-            results = fetch_dpe_api(date_min, date_max, region)
-            all_results.extend(results)
-        except Exception as e:
-            print(f"  ❌ Erreur région {region} {date_min[:4]} : {e}")
+for region in ["53"]:
+    try:
+        results = fetch_dpe_api(region)
+        all_results.extend(results)
+    except Exception as e:
+        print(f" Erreur région {region} : {e}")
 
 print(f"\n  → Total brut : {len(all_results):,} lignes récupérées")
 
