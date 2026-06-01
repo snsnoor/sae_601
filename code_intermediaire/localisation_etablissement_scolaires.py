@@ -1,34 +1,65 @@
 import requests
 import geopandas as gpd
+import tempfile
 
+# URL du jeu de donnÃ©es
 url = "https://www.data.gouv.fr/api/1/datasets/r/000f281d-81ec-4f57-be64-e3dbae5ef9ff"
 
 try:
-    # Envoi de la requête pour récupérer le fichier
+    # TÃ©lÃ©chargement
     response = requests.get(url)
-    
-    # Lève une erreur si le téléchargement a échoué (ex: erreur 404 ou 500)
     response.raise_for_status()
-    
-    # Conversion du contenu de la réponse en objet Python (dict ou list)
-    df_ecole = response.json()
-    print("Fichier JSON importé avec succès !")
-    
-    # Petite inspection rapide du contenu
-    if isinstance(df_ecole, dict):
-        print("Le JSON est un dictionnaire. Clés principales :", list(df_ecole.keys()))
-    elif isinstance(df_ecole, list):
-        print(f"Le JSON est une liste contenant {len(df_ecole)} éléments.")
-        if df_ecole:
-            print("Exemple du premier élément :", df_ecole[0])
+
+    print("TÃ©lÃ©chargement rÃ©ussi.")
+
+    # Sauvegarde temporaire du GeoJSON
+    with tempfile.NamedTemporaryFile(
+        suffix=".geojson",
+        delete=False
+    ) as f:
+        f.write(response.content)
+        temp_path = f.name
+
+    # Lecture avec GeoPandas
+    gdf_ecoles = gpd.read_file(temp_path)
+
+    print(f"Nombre d'Ã©tablissements : {len(gdf_ecoles)}")
+    print(f"CRS initial : {gdf_ecoles.crs}")
+
+    # Si aucun CRS n'est dÃ©tectÃ©
+    if gdf_ecoles.crs is None:
+        gdf_ecoles = gdf_ecoles.set_crs("EPSG:3857")
+
+    # Conversion en coordonnÃ©es GPS
+    gdf_ecoles = gdf_ecoles.to_crs("EPSG:4326")
+
+    # Extraction longitude / latitude
+    gdf_ecoles["longitude"] = gdf_ecoles.geometry.x
+    gdf_ecoles["latitude"] = gdf_ecoles.geometry.y
+
+    # Colonnes utiles
+    colonnes = [
+        "name",
+        "school-FR",
+        "operator-type",
+        "longitude",
+        "latitude",
+        "geometry"
+    ]
+
+    colonnes_existantes = [
+        c for c in colonnes
+        if c in gdf_ecoles.columns
+    ]
+
+    print("\nAperÃ§u des donnÃ©es :")
+    print(gdf_ecoles[colonnes_existantes].head())
+
+    print("\nColonnes disponibles :")
+    print(gdf_ecoles.columns.tolist())
 
 except requests.exceptions.RequestException as e:
-    print(f"Erreur lors de la récupération du fichier : {e}")
-except ValueError as e:
-    print(f"Le fichier récupéré n'est pas un JSON valide : {e}")
+    print(f"Erreur de tÃ©lÃ©chargement : {e}")
 
-gdf_ecoles = gpd.GeoDataFrame(
-    df_ecole,
-    geometry=gpd.points_from_xy(df_ecole['longitude'], df_ecole['latitude']),
-    crs="EPSG:4326"
-)
+except Exception as e:
+    print(f"Erreur : {e}")
