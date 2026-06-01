@@ -1,0 +1,64 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&family=Roboto+Mono:wght@500;600&display=swap');
+
+/* Définition des variables de couleurs */
+:root {
+    --fond-principal: #F8F9FA;
+    --fond-secondaire: #E9ECEF;
+    --texte-principal: #212529;
+    --accent-principal: #FFC107;
+    --accent-secondaire: #D62828;
+    --accent-tertiaire: #495057;
+    --succes: #2D6A4F;
+    --alerte: #B00020;
+}
+
+/* Base de l'application (Fond et Texte) */
+.stApp {
+    background-color: var(--fond-principal);
+    color: var(--texte-principal);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Bandeau latéral (Sidebar) */
+[data-testid="stSidebar"] {
+    background-color: var(--fond-secondaire) !important;
+}
+
+/* Typographie des Titres */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif !important;
+    color: var(--texte-principal) !important;
+}
+
+/* Soulignement stylisé pour les grands titres avec l'accent jaune */
+h1 {
+    border-bottom: 4px solid var(--accent-principal);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+/* Typographie pour les futurs KPIs (st.metric) */
+[data-testid="stMetricValue"] {
+    font-family: 'Roboto Mono', monospace !important;
+    color: var(--accent-secondaire) !important; /* Rouge brique pour faire ressortir les chiffres */
+}
+
+/* Pied de page personnalisé */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    Background-color: var(--fond-secondaire);
+    color: var(--accent-tertiaire);
+    text-align: center;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    border-top: 1px solid #dee2e6;
+}
+
+footer {visibility: hidden;}
