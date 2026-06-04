@@ -36,7 +36,7 @@ print("\n--- 2. Chargement et nettoyage des données DVF ---")
 con.execute("""
     CREATE OR REPLACE TABLE dvf AS
     SELECT
-        date_mutation, valeur_fonciere, surface_reelle_bati,
+        date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain
         adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
         nombre_pieces_principales, type_local, nature_mutation,
         longitude, latitude, code_commune, code_postal,

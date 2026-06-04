@@ -26,7 +26,7 @@ for t in tables_to_drop:
 print("\n--- 1. Chargement des fichiers adresses ---")
 con.execute("""
     CREATE OR REPLACE TABLE adresses AS 
-    SELECT * FROM read_csv_auto('data/adresses-*.csv', sep=';', union_by_name=True, ignore_errors=True)
+    SELECT * FROM read_csv_auto('data/adresses-france.csv.gz', sep=';', union_by_name=True, ignore_errors=True)
 """)
 print(f"-> Table 'adresses' créée avec {con.execute('SELECT COUNT(*) FROM adresses').fetchone()[0]:,} entrées.")
 
@@ -35,7 +35,7 @@ print("\n--- 2. Chargement et nettoyage des données DVF ---")
 con.execute("""
     CREATE OR REPLACE TABLE dvf AS
     SELECT
-        date_mutation, valeur_fonciere, surface_reelle_bati,
+        date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain
         adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
         nombre_pieces_principales, type_local, nature_mutation,
         longitude, latitude, code_commune, code_postal,
@@ -282,7 +282,7 @@ con.execute("""
     CREATE OR REPLACE TABLE dim_adresses AS
     WITH gares_calc AS (
         SELECT 
-            adr.numero, adr.nom_voie, adr.code_postal,
+            adr.numero, adr.nom_voie, adr.code_postal,  
             g.id_gare AS id_gare_proche,
             g.nom_gare AS nom_gare_proche,
             ST_Distance(adr.geom_2154, g.geom_2154) AS distance_gare_metres
