@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-con = duckdb.connect('info_appart.duckdb')
+con = duckdb.connect('info_appart_2.duckdb')
 
 #-------------------------------------------------------
 # Table dpe — via API ADEME (régions 52 et 53)

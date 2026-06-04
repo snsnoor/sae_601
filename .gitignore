@@ -1,9 +1,22 @@
-ValeursFoncieres-2025.txt
-valeursfoncieres-2025.zip
-dpe.csv
-info_appart.duckdb
-info_appart_2.duckdb
-info_appart_test.duckdb
-info_appart_test.duckdb.wal
-data/*
-.vscode/*
+﻿# Base de donnees (generee par init_base.py)
+*.duckdb
+*.duckdb.wal
+
+# Donnees sources (trop volumineuses pour git)
+data/
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

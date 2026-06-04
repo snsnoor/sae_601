@@ -1,9 +1,14 @@
-# --- Interface et Logique ---
-geopandas       # Manipulation et analyse de données géographiques (cartes, GeoJSON)
-pandas          # Manipulation de données tabulaires et fichiers Excel
-requests        # Envoi de requêtes HTTP pour télécharger des fichiers ou interroger des API
-shapely >= 2.0        # Manipulation et analyse de structures géométriques (calculs de polygones)
-streamlit       # Création de l'interface utilisateur web et interactive
+# Interface et logique
+geopandas          # manipulation de données géographiques (cartes, GeoJSON)
+pandas             # manipulation de données tabulaires
+requests           # requêtes HTTP (APIs, téléchargements)
+shapely>=2.0       # géométries (polygones, points)
+streamlit          # interface web interactive
+plotly             # graphiques interactifs (dashboard)
+numpy              # calculs numériques (dashboard)
 
-# --- Base de Données ---
-duckdb          # Base de données analytique locale rapide (alternative/connecteur SQL)
+# Base de données
+duckdb             # base analytique locale
+
+# Réseau (retry/backoff pour dpe_api.py)
+urllib3
