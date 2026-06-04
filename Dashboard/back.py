@@ -1,9 +1,281 @@
-# back.py
+"""
+back.py — Requêtes DuckDB pour le dashboard.
+Basé sur le modèle structuré (backf.py) avec intégration de la cartographie 
+et des filtres régionaux.
+"""
+
+import duckdb
+import pandas as pd
+from pathlib import Path
+
+# Chemin vers la base de données
+DB_PATH = 'info_appart_2.duckdb'
+
+# --- 1. MAPPING ET FILTRES ---
+
+REGIONS_MAPPING = {
+    'Toutes les régions': [],
+    'Auvergne-Rhône-Alpes': ['01', '03', '07', '15', '26', '38', '42', '43', '63', '69', '73', '74'],
+    'Bourgogne-Franche-Comté': ['21', '25', '39', '58', '70', '71', '89', '90'],
+    'Bretagne': ['22', '29', '35', '56'],
+    'Centre-Val de Loire': ['18', '28', '36', '37', '41', '45'],
+    'Corse': ['2A', '2B'],
+    'Grand Est': ['08', '10', '51', '52', '54', '55', '57', '67', '68', '88'],
+    'Hauts-de-France': ['02', '59', '60', '62', '80'],
+    'Île-de-France': ['75', '77', '78', '91', '92', '93', '94', '95'],
+    'Normandie': ['14', '27', '50', '61', '76'],
+    'Nouvelle-Aquitaine': ['16', '17', '19', '23', '24', '33', '40', '47', '64', '79', '86', '87'],
+    'Occitanie': ['09', '11', '12', '30', '31', '32', '34', '46', '48', '65', '66', '81', '82'],
+    'Pays de la Loire': ['44', '49', '53', '72', '85'],
+    'Provence-Alpes-Côte d\'Azur': ['04', '05', '06', '13', '83', '84']
+}
+
+def get_regions():
+    """Renvoie la liste des régions pour le menu déroulant."""
+    return list(REGIONS_MAPPING.keys())
+
+def _get_dept_filter(region, alias="f"):
+    """Construit la condition SQL IN (...) pour filtrer par départements."""
+    if region and region != 'Toutes les régions':
+        depts = REGIONS_MAPPING.get(region, [])
+        depts_str = ", ".join([f"'{d}'" for d in depts])
+        return f" AND {alias}.code_departement IN ({depts_str}) "
+    return ""
+
+# --- 2. CONNEXION À LA BASE ---
+
+def _con():
+    """Ouvre une connexion en lecture seule à DuckDB."""
+    return duckdb.connect(str(DB_PATH), read_only=True)
+
+def db_ready() -> bool:
+    """Retourne True si la base existe et contient fact_dvf."""
+    try:
+        con = _con()
+        tables = [r[0] for r in con.execute("SHOW TABLES").fetchall()]
+        con.close()
+        return "fact_dvf" in tables
+    except Exception:
+        return False
+
+# --- 3. FONCTIONS POUR LE FRONT-END (VUE GLOBALE ET CARTE) ---
 
 def get_donnees_globales():
-    """Fonction qui gérera l'analyse globale du marché."""
-    return "Les données globales du marché immobilier seront affichées ici."
+    return "Voici un aperçu de l'état du marché immobilier français."
 
 def get_modele_estimation():
-    """Fonction qui gérera l'estimation de prix."""
-    return "Le formulaire et les résultats d'estimation seront affichés ici."
+    return "L'algorithme d'estimation et son formulaire arriveront ici."
+
+def get_kpis(region=None) -> dict:
+    """
+    Récupère à la fois les statistiques globales ET les classements (Tops 5).
+    Intègre les filtres régionaux et se concentre sur les Maisons/Appartements.
+    """
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    
+    # 1. Statistiques globales (pour st.metric futurs ou actuels)
+    row = con.execute(f"""
+        SELECT
+            COUNT(*)                                                      AS nb_transactions,
+            COUNT(DISTINCT v.nom_commune)                                 AS nb_communes,
+            MEDIAN(f.valeur_fonciere / NULLIF(f.surface_terrain, 0))      AS prix_m2_median,
+            MEDIAN(f.surface_terrain)                                 AS surface_mediane
+        FROM fact_dvf f
+        JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+        WHERE f.valeur_fonciere > 0 
+          AND f.surface_terrain > 0
+          AND f.type_local IN ('Maison', 'Appartement')
+          {dept_filter}
+    """).fetchone()
+
+    # 2. Requête de base pour les Tops (min. et max. 10 ventes)
+    query_base_tops = f"""
+        SELECT
+            v.nom_commune,
+            CAST(MEDIAN(f.valeur_fonciere / NULLIF(f.surface_terrain, 0)) AS INTEGER) AS prix_m2_median,
+            COUNT(f.id_mutation) as nb_ventes
+        FROM fact_dvf f
+        JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+        WHERE f.valeur_fonciere > 0
+          AND f.surface_terrain > 0
+          AND f.type_local IN ('Maison', 'Appartement')
+          {dept_filter}
+        GROUP BY v.nom_commune
+        HAVING nb_ventes >= 10
+    """
+
+    # 3. Récupération des DataFrames
+    df_top_cheres = con.execute(f"{query_base_tops} ORDER BY prix_m2_median DESC LIMIT 5").df()
+    df_top_moins_cheres = con.execute(f"{query_base_tops} ORDER BY prix_m2_median ASC LIMIT 5").df()
+    con.close()
+
+    # Nettoyage textuel
+    if not df_top_cheres.empty:
+        df_top_cheres['nom_commune'] = df_top_cheres['nom_commune'].astype(str).str.title()
+    if not df_top_moins_cheres.empty:
+        df_top_moins_cheres['nom_commune'] = df_top_moins_cheres['nom_commune'].astype(str).str.title()
+
+    return {
+        "nb_transactions": int(row[0] or 0),
+        "nb_communes":     int(row[1] or 0),
+        "prix_m2_median":  round(float(row[2]), 0) if row[2] else 0,
+        "surface_mediane": round(float(row[3]), 0) if row[3] else 0,
+        "top_cheres": df_top_cheres,
+        "top_moins_cheres": df_top_moins_cheres
+    }
+
+def get_prix_median_par_commune(region=None) -> pd.DataFrame:
+    """
+    Récupère les données pour la carte Scatter Mapbox (avec la correction des latitudes à 0).
+    """
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    
+    df = con.execute(f"""
+        SELECT 
+            v.nom_commune,
+            MEDIAN(f.valeur_fonciere / NULLIF(f.surface_reelle_bati, 0)) AS prix_m2_median,
+            AVG(NULLIF(v.lat, 0)) AS latitude,
+            AVG(NULLIF(v.lon, 0)) AS longitude,
+            COUNT(f.id_mutation) AS volume_ventes
+        FROM fact_dvf f
+        JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+        WHERE f.valeur_fonciere > 0 
+          AND f.surface_reelle_bati > 0
+          AND f.type_local IN ('Maison', 'Appartement')
+          {dept_filter}
+        GROUP BY v.nom_commune
+        HAVING prix_m2_median IS NOT NULL 
+           AND latitude IS NOT NULL
+    """).df()
+    
+    con.close()
+    
+    if not df.empty:
+        df['nom_commune'] = df['nom_commune'].astype(str).str.title()
+        
+    return df
+
+# --- 4. FONCTIONS AVANCÉES (POUR FUTURS GRAPHIQUES) ---
+
+def get_prix_par_mois(region=None) -> pd.DataFrame:
+    """Évolution mensuelle des prix pour des graphiques temporels (Line chart)."""
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    df = con.execute(f"""
+        SELECT
+            STRFTIME(CAST(date_mutation AS DATE), '%Y-%m') AS mois,
+            ROUND(MEDIAN(valeur_fonciere / NULLIF(surface_reelle_bati, 0)), 0) AS prix_m2_median,
+            COUNT(*) AS nb_transactions
+        FROM fact_dvf f
+        WHERE f.surface_reelle_bati > 0
+          AND f.type_local IN ('Maison', 'Appartement')
+          {dept_filter}
+        GROUP BY mois
+        ORDER BY mois
+    """).df()
+    con.close()
+    return df
+
+def get_prix_vs_proximite(region=None, limit: int = 2000) -> pd.DataFrame:
+    """Échantillon pour scatter plots (prix vs distance gare/école)."""
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    df = con.execute(f"""
+        SELECT
+            ROUND(f.valeur_fonciere / NULLIF(f.surface_reelle_bati, 0), 0) AS prix_m2,
+            ROUND(v.distance_gare_metres  / 1000.0, 3) AS dist_gare_km,
+            ROUND(v.distance_ecole_metres / 1000.0, 3) AS dist_ecole_km,
+            f.type_local,
+            f.surface_reelle_bati
+        FROM fact_dvf f
+        JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+        WHERE f.surface_reelle_bati > 0
+          AND f.type_local IN ('Maison', 'Appartement')
+          AND v.distance_gare_metres  IS NOT NULL
+          AND v.distance_ecole_metres IS NOT NULL
+          AND f.valeur_fonciere / NULLIF(f.surface_reelle_bati, 0) BETWEEN 500 AND 30000
+          {dept_filter}
+        USING SAMPLE {limit}
+    """).df()
+    con.close()
+    return df
+
+def search_properties(
+    commune: str = "",
+    type_local: str = "Tous",
+    nb_pieces_min: int = 1,
+    surface_min: float = 10.0,
+    budget_min: float = 50_000,
+    budget_max: float = 1_500_000,
+    prix_m2_max: float = 20_000,
+    dist_gare_max: float = None,
+    dist_ecole_max: float = None
+) -> pd.DataFrame:
+    """Moteur de recherche multicritères avec calcul du prix moyen de la commune."""
+    conditions = [
+        "f.surface_reelle_bati >= ?",
+        "f.valeur_fonciere BETWEEN ? AND ?",
+        "f.valeur_fonciere / NULLIF(f.surface_reelle_bati, 0) <= ?",
+        "f.nombre_pieces_principales >= ?",
+        "f.type_local IN ('Maison', 'Appartement')",
+    ]
+    params: list = [surface_min, budget_min, budget_max, prix_m2_max, nb_pieces_min]
+
+    if commune.strip():
+        conditions.append("LOWER(v.nom_commune) LIKE ?")
+        params.append(f"%{commune.strip().lower()}%")
+
+    if type_local and type_local != "Tous":
+        conditions.append("f.type_local = ?")
+        params.append(type_local)
+
+    if dist_gare_max is not None:
+        conditions.append("v.distance_gare_metres <= ?")
+        params.append(dist_gare_max * 1000)
+
+    if dist_ecole_max is not None:
+        conditions.append("v.distance_ecole_metres <= ?")
+        params.append(dist_ecole_max * 1000)
+
+    where = " AND ".join(conditions)
+    con = _con()
+    
+    # Ajout d'une CTE (commune_medians) pour avoir le prix de la ville en référence
+    df = con.execute(f"""
+        WITH commune_medians AS (
+            SELECT
+                v_sub.nom_commune,
+                MEDIAN(f_sub.valeur_fonciere / NULLIF(f_sub.surface_reelle_bati, 0)) AS prix_m2_commune
+            FROM fact_dvf f_sub
+            JOIN dim_adresses v_sub ON f_sub.id_adresse = v_sub.id_adresse
+            WHERE f_sub.surface_reelle_bati > 0 AND f_sub.valeur_fonciere > 0
+            GROUP BY v_sub.nom_commune
+        )
+        SELECT
+            v.nom_commune,
+            v.nom_voie,
+            v.code_postal,
+            f.date_mutation,
+            f.valeur_fonciere,
+            f.surface_reelle_bati,
+            f.nombre_pieces_principales,
+            f.type_local,
+            ROUND(f.valeur_fonciere / NULLIF(f.surface_reelle_bati, 0), 0) AS prix_m2,
+            ROUND(cm.prix_m2_commune, 0) AS prix_m2_commune,
+            v.nom_gare_proche,
+            ROUND(v.distance_gare_metres  / 1000.0, 2) AS dist_gare_km,
+            v.nom_ecole_proche,
+            ROUND(v.distance_ecole_metres / 1000.0, 2) AS dist_ecole_km,
+            v.lat,
+            v.lon
+        FROM fact_dvf f
+        JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+        LEFT JOIN commune_medians cm ON v.nom_commune = cm.nom_commune
+        WHERE {where}
+        ORDER BY f.date_mutation DESC
+        LIMIT 200
+    """, params).df()
+    con.close()
+    return df
