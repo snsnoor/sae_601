@@ -3,6 +3,9 @@
 ## Business Question
 
 > Given a price, a location, and a set of property characteristics, is this a good deal?
+This project is developed as part of the SAE 601 unit of the last year of  BUT Sciences des Données program. The central business question driving the work is: **given a price, a location, and a set of property characteristics, is this a good deal?**
+
+The objective is to build a complete Business Intelligence tool that helps buyers, sellers, and real estate professionals assess whether a property is fairly priced. This involves collecting, cleaning, cross-referencing, and exposing data from multiple French public sources, covering transaction history, energy performance, noise exposure, socio-economic context, and geographic information.
 
 ## Team
 
