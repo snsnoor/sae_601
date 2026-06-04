@@ -54,7 +54,7 @@ print("Chargement des données DVF dans la table brute...")
 con.execute(f"""
     CREATE OR REPLACE TABLE dvf_raw AS
     SELECT
-        date_mutation, valeur_fonciere, surface_reelle_bati,
+        date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain
         adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
         nombre_pieces_principales, type_local, nature_mutation,
         longitude, latitude, code_commune, code_postal,
