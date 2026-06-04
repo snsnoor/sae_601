@@ -3,25 +3,22 @@ import duckdb
 import requests
 import pandas as pd
 import geopandas as gpd
-import tempfile
 from shapely.geometry import shape
 
-# Configuration des chemins
+# Configuration de la base
 DB_PATH = 'info_appart.duckdb'
-os.makedirs('data', exist_ok=True)
-
 print(f"Connexion à la base {DB_PATH}...")
 con = duckdb.connect(DB_PATH)
 
-# Initialisation obligatoire de l'extension spatiale
+# Initialisation obligatoire de l'extension spatiale pour DuckDB
 print("Chargement de l'extension spatiale DuckDB...")
 con.execute("INSTALL spatial;")
 con.execute("LOAD spatial;")
 
-# Nettoyage complet des anciennes tables pour repartir sur du propre
+# Nettoyage des anciennes tables pour éviter les conflits de schéma
 tables_to_drop = [
-    "dvf", "dvf_raw", "adresses", "gares", "dim_gares", "iris", "dim_iris", 
-    "dpe_raw", "dpe_imputed", "dim_adresses", "fact_dvf", "iris_geoms_temp", "adresses_utiles_temp"
+    "dvf", "adresses", "dim_gares", "dim_iris", "dim_adresses", "fact_dvf", 
+    "dpe_final", "iris_geoms_temp", "adresses_utiles_temp"
 ]
 for t in tables_to_drop:
     con.execute(f"DROP TABLE IF EXISTS {t};")
@@ -32,27 +29,12 @@ con.execute("""
     CREATE OR REPLACE TABLE adresses AS 
     SELECT * FROM read_csv_auto('data/adresses-*.csv', sep=';', union_by_name=True, ignore_errors=True)
 """)
-print(f"-> Table 'adresses' créée avec {con.execute('SELECT COUNT(*) FROM adresses').fetchone()[0]:,} entrées.")
+print(f"Table 'adresses' créée.")
 
-# ------------------- 2. Table 'dvf' (Téléchargement sécurisé + Déduplication fine) -------------------
+# ------------------- 2. Table 'dvf' -------------------
 print("\n--- 2. Chargement et nettoyage des données DVF ---")
-url_dvf = 'https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres-geolocalisees/20260424-090024/dvf.csv.gz'
-local_dvf_path = 'data/dvf.csv.gz'
-
-if not os.path.exists(local_dvf_path):
-    print("Téléchargement du fichier DVF volumineux en mode sécurisé (flux par blocs)...")
-    with requests.get(url_dvf, stream=True) as r:
-        r.raise_for_status()
-        with open(local_dvf_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=16384):
-                f.write(chunk)
-    print("-> Téléchargement DVF terminé.")
-else:
-    print("-> Fichier DVF local trouvé (utilisation du cache).")
-
-print("Chargement des données DVF dans la table brute...")
-con.execute(f"""
-    CREATE OR REPLACE TABLE dvf_raw AS
+con.execute("""
+    CREATE OR REPLACE TABLE dvf AS
     SELECT
         date_mutation, valeur_fonciere, surface_reelle_bati,
         adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
@@ -60,47 +42,30 @@ con.execute(f"""
         longitude, latitude, code_commune, code_postal,
         nom_commune, code_departement
     FROM read_csv(
-        '{local_dvf_path}',
+        'https://static.data.gouv.fr/resources/demandes-de-valeurs-foncieres-geolocalisees/20260424-090024/dvf.csv.gz',
         delim=',', header=True, ignore_errors=True
     )
     WHERE YEAR(CAST(date_mutation AS DATE)) IN (2024, 2025)
     AND valeur_fonciere IS NOT NULL
 """)
 
-print("Application de votre logique de déduplication fine (Une ligne par transaction)...")
-con.execute("""
-    CREATE OR REPLACE TABLE dvf AS
-    SELECT * EXCLUDE(_rn)
-    FROM (
-        SELECT *,
-               ROW_NUMBER() OVER (
-                   PARTITION BY date_mutation, valeur_fonciere, code_commune, adresse_numero, adresse_nom_voie
-                   ORDER BY
-                       CASE type_local
-                           WHEN 'Maison'      THEN 1
-                           WHEN 'Appartement' THEN 2
-                           ELSE 3
-                       END ASC,
-                       surface_reelle_bati DESC NULLS LAST
-               ) AS _rn
-        FROM dvf_raw
-    )
-    WHERE _rn = 1
-""")
-con.execute("DROP TABLE dvf_raw")
-
-# Remplacement des valeurs NULL
+# Nettoyage des valeurs NULL de DVF
 cols_numeric = ["surface_reelle_bati", "nombre_pieces_principales", "longitude", "latitude", "adresse_numero"]
 cols_text = ["type_local", "adresse_code_voie", "adresse_nom_voie", "adresse_suffixe", "code_postal"]
-for col in cols_numeric: con.execute(f'UPDATE dvf SET "{col}" = 0 WHERE "{col}" IS NULL')
-for col in cols_text: con.execute(f"UPDATE dvf SET \"{col}\" = 'NR' WHERE \"{col}\" IS NULL")
 
-print(f"-> Table 'dvf' finalisée ({con.execute('SELECT COUNT(*) FROM dvf').fetchone()[0]:,} transactions).")
+for col in cols_numeric:
+    con.execute(f'UPDATE dvf SET "{col}" = 0 WHERE "{col}" IS NULL')
+for col in cols_text:
+    con.execute(f"UPDATE dvf SET \"{col}\" = 'NR' WHERE \"{col}\" IS NULL")
+
+print("Table 'dvf' créée et nettoyée.")
 
 # ------------------- 3. Table 'dim_gares' -------------------
 print("\n--- 3. Téléchargement des données des gares SNCF ---")
 base_url = "https://data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-gares/records"
-limit, offset, toutes_les_gares = 100, 0, []
+limit = 100
+offset = 0
+toutes_les_gares = []
 
 while True:
     params = {"select": "code_uic, libelle, commune, departemen, c_geo", "limit": limit, "offset": offset}
@@ -132,58 +97,76 @@ con.execute("""
     FROM df_gares_temp
     WHERE longitude IS NOT NULL AND latitude IS NOT NULL
 """)
-print(f"-> Table 'dim_gares' créée ({con.execute('SELECT COUNT(*) FROM dim_gares').fetchone()[0]:,} gares).")
+print(f"Table 'dim_gares' créée.")
 
-# ------------------- 4. Table 'dim_iris' (Correction Géométrie WKT) -------------------
+# ------------------- 4. Table 'dim_iris' (Format de tes colonnes réelles) -------------------
 print("\n--- 4. Téléchargement et structuration des zones IRIS ---")
-url_iris = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
-geojson_data = requests.get(url_iris).json()
+url = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
+
+response = requests.get(url)
+geojson_data = response.json()
 
 features_valides = []
 for feature in geojson_data.get('features', []):
-    if feature.get('geometry'):
-        try:
-            s = shape(feature['geometry'])
-            if s.is_valid and s.area > 0:
+    try:
+        if feature.get('geometry'):
+            geometrie = shape(feature['geometry']) 
+            if geometrie.is_valid and geometrie.area > 0:
                 features_valides.append(feature)
-        except: continue
+    except:
+        continue
 
 gdf = gpd.GeoDataFrame.from_features(features_valides)
 gdf.set_crs("EPSG:4326", inplace=True)
 
-# L'ASTUCE : On convertit la géométrie en chaîne de caractères WKT avant de supprimer l'objet complexe
+# Sauvegarde essentielle de la géométrie au format texte WKT pour DuckDB
 gdf['geom_wkt'] = gdf['geometry'].apply(lambda x: x.wkt if x else None)
 df_iris_temp = pd.DataFrame(gdf.drop(columns='geometry'))
 
 con.register('df_iris_temp', df_iris_temp)
+
+# Création avec typage strict basé sur ton schéma
 con.execute("""
     CREATE OR REPLACE TABLE dim_iris AS 
-    SELECT ROW_NUMBER() OVER () AS id_iris, * FROM df_iris_temp
+    SELECT 
+        ROW_NUMBER() OVER () AS id_iris,
+        CAST(ZONE AS VARCHAR) AS ZONE,
+        CAST(CODE_OACI AS VARCHAR) AS CODE_OACI,
+        CAST(NOM AS VARCHAR) AS NOM,
+        CAST(PRODUCTEUR AS VARCHAR) AS PRODUCTEUR,
+        CAST(REF_DOC AS VARCHAR) AS REF_DOC,
+        CAST(INDLDENEXT AS VARCHAR) AS INDLDENEXT,
+        CAST(INDLDENINT AS VARCHAR) AS INDLDENINT,
+        CAST(DATE_ARRET AS VARCHAR) AS DATE_ARRET,
+        CAST(DATE_MAJ AS VARCHAR) AS DATE_MAJ,
+        CAST(ID_MAP AS VARCHAR) AS ID_MAP,
+        geom_wkt
+    FROM df_iris_temp
 """)
-print(f"-> Table 'dim_iris' créée avec succès ({con.execute('SELECT COUNT(*) FROM dim_iris').fetchone()[0]:,} zones).")
+print("Table 'dim_iris' créée.")
 
 # ------------------- 5. Table 'dpe_final' -------------------
 print("\n--- 5. Chargement et nettoyage des données DPE ---")
-DPE_FILE = "data/dpe.csv"
+DPE_FILE = r"data\dpe.csv"
 
 if not os.path.exists(DPE_FILE):
-    print("⚠️ Fichier data/dpe.csv manquant ! Étape DPE ignorée.")
+    print(f"⚠️ Fichier {DPE_FILE} absent. Étape DPE ignorée.")
 else:
     COLS_TO_KEEP = [
         "numero_dpe", "date_etablissement_dpe", "date_fin_validite_dpe", "date_derniere_modification_dpe",
         "code_insee_ban", "code_departement_ban", "code_region_ban", "coordonnee_cartographique_x_ban", 
-        "coordonnee_cartographique_y_ban", "score_ban", "nom_commune_ban", "code_postal_ban", 
-        "adresse_brut", "nom_commune_brut", "code_postal_brut", "etiquette_dpe", "etiquette_ges",
-        "conso_5_usages_ep", "conso_5_usages_par_m2_ep", "conso_5 usages_ef", "conso_5 usages_par_m2_ef",
-        "emission_ges_5_usages", "emission_ges_5_usages par_m2", "cout_total_5_usages", "cout_chauffage", 
-        "cout_ecs", "cout_refroidissement", "cout_eclairage", "cout_auxiliaires", "type_batiment", 
-        "typologie_logement", "surface_habitable_logement", "periode_construction", "indicateur_confort_ete", 
-        "nombre_niveau_logement", "zone_climatique", "classe_altitude", "type_energie_principale_chauffage", 
-        "type_generateur_chauffage_principal", "qualite_isolation_enveloppe", "qualite_isolation_murs", 
-        "qualite_isolation_menuiseries", "ubat_w_par_m2_k", "isolation_toiture", "conso_chauffage_ef"
+        "coordonnee_cartographique_y_ban", "score_ban", "nom_commune_ban", "code_postal_ban", "adresse_brut", 
+        "nom_commune_brut", "code_postal_brut", "etiquette_dpe", "etiquette_ges", "conso_5_usages_ep", 
+        "conso_5_usages_par_m2_ep", "conso_5 usages_ef", "conso_5 usages_par_m2_ef", "emission_ges_5_usages", 
+        "emission_ges_5_usages par_m2", "cout_total_5_usages", "cout_chauffage", "cout_ecs", "cout_refroidissement", 
+        "cout_eclairage", "cout_auxiliaires", "type_batiment", "typologie_logement", "surface_habitable_logement", 
+        "periode_construction", "indicateur_confort_ete", "nombre_niveau_logement", "zone_climatique", 
+        "classe_altitude", "type_energie_principale_chauffage", "type_generateur_chauffage_principal", 
+        "qualite_isolation_enveloppe", "qualite_isolation_murs", "qualite_isolation_menuiseries", 
+        "ubat_w_par_m2_k", "isolation_toiture", "conso_chauffage_ef"
     ]
 
-    cols_header = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_csv('{DPE_FILE}', auto_detect=TRUE, all_varchar=TRUE, sample_size=1)").fetchall()]
+    cols_header = con.execute(f"SELECT column_name FROM (DESCRIBE SELECT * FROM read_csv('{DPE_FILE}', auto_detect=TRUE, all_varchar=TRUE, sample_size=1))").fetchdf()["column_name"].tolist()
     cols_ok = [c for c in COLS_TO_KEEP if c in cols_header]
     select_clause = ", ".join([f'"{c}"' for c in cols_ok])
 
@@ -235,10 +218,10 @@ else:
         ) WHERE _rn = 1
     """)
     con.execute("ALTER TABLE dpe_final DROP COLUMN _rn; DROP TABLE dpe_raw; DROP TABLE dpe_imputed;")
-    print(f"-> Table 'dpe_final' créée ({con.execute('SELECT COUNT(*) FROM dpe_final').fetchone()[0]:,} lignes).")
+    print("Table 'dpe_final' créée.")
 
-# ------------------- 6. Modèle en Étoile (Calculs Spatiaux Optimisés) -------------------
-print("\n--- 6. RESTRUCTURATION EN MODÈLE EN ÉTOILE (INDEXATION + SPATIAL JOINS) ---")
+# ------------------- 6. Modèle en Étoile (Calculs Spatiaux Corrigés) -------------------
+print("\n--- 6. RESTRUCTURATION EN MODÈLE EN ÉTOILE (POINT-IN-POLYGON) ---")
 
 print("Étape 1 : Indexation des adresses uniques de DVF...")
 con.execute("""
@@ -254,12 +237,11 @@ con.execute("""
     WHERE dvf.longitude IS NOT NULL AND dvf.longitude != 0 AND dvf.latitude IS NOT NULL AND dvf.latitude != 0;
 """)
 
-print("Étape 2 : Pré-filtrage par Bounding Box des géométries IRIS (Gain massif de performances)...")
+print("Étape 2 : Pré-filtrage par Bounding Box des géométries IRIS (Optimisation vitesse)...")
 con.execute("""
     CREATE OR REPLACE TEMP TABLE iris_geoms_temp AS
     SELECT
-        id_iris,
-        COALESCE(Nom_IRIS, CODE_IRIS, 'Zone_' || id_iris) AS zone_nom,
+        id_iris, CODE_OACI, NOM,
         ST_GeomFromText(geom_wkt) AS geom,
         ST_XMin(ST_GeomFromText(geom_wkt)) AS lon_min,
         ST_XMax(ST_GeomFromText(geom_wkt)) AS lon_max,
@@ -269,7 +251,7 @@ con.execute("""
     WHERE geom_wkt IS NOT NULL;
 """)
 
-print("Étape 3 : Génération de dim_adresses avec double calcul spatial (Gares proches + IRIS Match)...")
+print("Étape 3 : Génération de dim_adresses (LEFT JOIN pour garder toutes les adresses)...")
 con.execute("""
     CREATE OR REPLACE TABLE dim_adresses AS
     WITH gares_calc AS (
@@ -287,18 +269,21 @@ con.execute("""
         SELECT 
             adr.numero, adr.nom_voie, adr.code_postal,
             i.id_iris,
-            i.zone_nom AS zone_iris
+            i.CODE_OACI AS code_oaci_iris,
+            i.NOM AS nom_iris
         FROM adresses_utiles_temp adr
-        INNER JOIN iris_geoms_temp i ON adr.lon BETWEEN i.lon_min AND i.lon_max
-                                   AND adr.lat BETWEEN i.lat_min AND i.lat_max
-                                   AND ST_Contains(i.geom, ST_Point(adr.lon, adr.lat))
+        -- Le LEFT JOIN préserve l'adresse même si elle n'est pas dans un polygone aéroportuaire
+        LEFT JOIN iris_geoms_temp i 
+            ON adr.lon BETWEEN i.lon_min AND i.lon_max
+           AND adr.lat BETWEEN i.lat_min AND i.lat_max
+           AND ST_Contains(i.geom, ST_Point(adr.lon, adr.lat))
         QUALIFY ROW_NUMBER() OVER(PARTITION BY adr.numero, adr.nom_voie, adr.code_postal ORDER BY i.id_iris) = 1
     )
     SELECT 
         ROW_NUMBER() OVER () AS id_adresse,
         adr.numero, adr.nom_voie, adr.code_postal, adr.nom_commune, adr.lon, adr.lat,
-        gc.id_gare_proche, gc.nom_gare_proche, gc.distance_gare_metres,
-        ic.id_iris, ic.zone_iris
+        gc.nom_gare_proche, gc.distance_gare_metres,
+        ic.id_iris, ic.code_oaci_iris, ic.nom_iris
     FROM adresses_utiles_temp adr
     LEFT JOIN gares_calc gc ON adr.numero = gc.numero AND adr.nom_voie = gc.nom_voie AND adr.code_postal = gc.code_postal
     LEFT JOIN iris_calc ic ON adr.numero = ic.numero AND adr.nom_voie = ic.nom_voie AND adr.code_postal = ic.code_postal;
@@ -319,20 +304,22 @@ con.execute("""
        AND dvf.code_postal = v.code_postal;
 """)
 
-# Nettoyage des index géométriques lourds et intermédiaires pour libérer l'espace disque
+# Nettoyage final des index géométriques lourds et intermédiaires pour libérer de l'espace
 con.execute("DROP TABLE IF EXISTS dvf; DROP TABLE IF EXISTS adresses_utiles_temp; DROP TABLE IF EXISTS iris_geoms_temp;")
 con.execute("ALTER TABLE dim_gares DROP COLUMN geom_2154; ALTER TABLE dim_gares DROP COLUMN x_2154; ALTER TABLE dim_gares DROP COLUMN y_2154;")
 
-print("\n" + "="*65)
-print("📊 BILAN DU PIPELINE DE DONNÉES SPATIALES")
-print("="*65)
-print(f"  fact_dvf     : {con.execute('SELECT COUNT(*) FROM fact_dvf').fetchone()[0]:>10,}  (Table de Faits - Ventes dédoublonnées)")
-print(f"  dim_adresses : {con.execute('SELECT COUNT(*) FROM dim_adresses').fetchone()[0]:>10,}  (Adresses avec distances & IRIS calculés)")
-print(f"  dim_iris     : {con.execute('SELECT COUNT(*) FROM dim_iris').fetchone()[0]:>10,}  (Zones IRIS référencées)")
-print(f"  dim_gares    : {con.execute('SELECT COUNT(*) FROM dim_gares').fetchone()[0]:>10,}  (Gares ferroviaires SNCF)")
-if "dpe_final" in [r[0] for r in con.execute("SHOW TABLES").fetchall()]:
-    print(f"  dpe_final    : {con.execute('SELECT COUNT(*) FROM dpe_final').fetchone()[0]:>10,}  (Diagnostics de performance énergétique)")
-print("="*65)
+# ------------------- Fin du script -------------------
+
+print("\n=======================================================================")
+print("📊 BILAN DU PROLOGUE")
+print("=======================================================================")
+print(f"-> Table 'fact_dvf' (Faits)         : {con.execute('SELECT COUNT(*) FROM fact_dvf').fetchone()[0]:,} ventes")
+print(f"-> Table 'dim_adresses' (Spatial)   : {con.execute('SELECT COUNT(*) FROM dim_adresses').fetchone()[0]:,} adresses structurées")
+print(f"-> Table 'dim_iris' (Dimension)     : {con.execute('SELECT COUNT(*) FROM dim_iris').fetchone()[0]:,} zones IRIS enregistrées")
+print(f"-> Table 'dim_gares' (Dimension)    : {con.execute('SELECT COUNT(*) FROM dim_gares').fetchone()[0]:,} gares routières/SNCF enregistrées")
+print(f"-> Table 'dim_ecoles' (Dimension)   : {con.execute('SELECT COUNT(*) FROM dim_ecoles').fetchone()[0]:,} établissements scolaires enregistrés")
+print(f"-> Table 'dpe_final' (Logements)    : {con.execute('SELECT COUNT(*) FROM dpe_final').fetchone()[0]:,} diagnostics uniques")
+print("=======================================================================")
 
 con.close()
-print("Processus global exécuté et optimisé avec succès.")
+print("\nProcessus terminé avec succès.")
