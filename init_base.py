@@ -27,7 +27,7 @@ for t in tables_to_drop:
 print("\n--- 1. Chargement des fichiers adresses ---")
 con.execute("""
     CREATE OR REPLACE TABLE adresses AS 
-    SELECT * FROM read_csv_auto('data/adresses-*.csv', sep=';', union_by_name=True, ignore_errors=True)
+    SELECT * FROM read_csv_auto('data/adresses-*.csv*', sep=';', union_by_name=True, ignore_errors=True)
 """)
 print(f"Table 'adresses' créée.")
 
@@ -236,6 +236,9 @@ con.execute("""
     FROM dvf
     WHERE dvf.longitude IS NOT NULL AND dvf.longitude != 0 AND dvf.latitude IS NOT NULL AND dvf.latitude != 0;
 """)
+print(f"Nb lignes dans dvf : {con.execute('SELECT COUNT(*) FROM dvf').fetchone()[0]:,}")
+
+
 
 print("Étape 2 : Pré-filtrage par Bounding Box des géométries IRIS (Optimisation vitesse)...")
 con.execute("""
