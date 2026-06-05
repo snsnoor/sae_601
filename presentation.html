@@ -46,7 +46,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 .slide {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 64px 80px;
+  padding: 56px 80px;
   background: var(--beige-bg);
   opacity: 0; pointer-events: none;
   transform: translateX(60px);
@@ -61,7 +61,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   transition: opacity .28s ease, transform .28s ease;
 }
 
-/* Filet décoratif gauche (accent vert) */
 .slide::before {
   content: ""; position: absolute; left: 0; top: 10%; bottom: 10%;
   width: 4px; background: linear-gradient(180deg, var(--green-primary), var(--green-muted));
@@ -69,14 +68,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 }
 .slide.slide-cover::before { display: none; }
 
-/* Numéro de slide discret */
 .slide-num {
-  position: absolute; bottom: 28px; right: 40px;
-  font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  position: absolute; bottom: 22px; right: 40px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
   color: var(--text-faint);
 }
 
-/* ── Cover spéciale ─────────────────────────────────────────── */
+/* ── Cover ──────────────────────────────────────────────────── */
 .slide-cover {
   background: linear-gradient(150deg, var(--brown-dark) 0%, #2E2016 60%, #1a1008 100%);
   align-items: flex-start; justify-content: flex-end; padding: 72px 80px;
@@ -86,22 +84,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   color: var(--green-muted); margin-bottom: 16px;
 }
 .cover-title {
-  font-family: var(--font-display); font-size: clamp(2.8rem, 6vw, 5rem);
+  font-family: var(--font-display); font-size: clamp(2.8rem, 6vw, 4.8rem);
   font-weight: 800; color: #fff; letter-spacing: -.03em; line-height: 1.05;
   margin-bottom: 20px;
 }
 .cover-title span { color: var(--green-muted); }
 .cover-sub {
-  font-size: 1.05rem; color: var(--brown-light); line-height: 1.55; max-width: 52ch;
+  font-size: 1.1rem; color: var(--brown-light); line-height: 1.6; max-width: 54ch;
   margin-bottom: 40px;
 }
-.cover-team {
-  display: flex; gap: 12px; flex-wrap: wrap;
-}
+.cover-team { display: flex; gap: 12px; flex-wrap: wrap; }
 .team-chip {
   background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
   border-radius: var(--radius-full); padding: 6px 16px;
-  font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.8);
+  font-size: .82rem; font-weight: 600; color: rgba(255,255,255,.8);
 }
 .cover-logo {
   position: absolute; top: 56px; left: 80px;
@@ -118,26 +114,26 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   color: var(--brown-light);
 }
 
-/* ── Section badge (slide de section intermédiaire) ─────────── */
+/* ── Section badge ──────────────────────────────────────────── */
 .section-badge {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--green-light); border: 1px solid #C6E0C7; border-radius: var(--radius-full);
   padding: 5px 14px; font-size: .7rem; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--green-hover); margin-bottom: 16px;
+  text-transform: uppercase; color: var(--green-hover); margin-bottom: 14px;
 }
 
-/* ── Titre de slide standard ────────────────────────────────── */
-.slide-header { width: 100%; max-width: 1100px; margin-bottom: 36px; }
+/* ── Titre de slide ─────────────────────────────────────────── */
+.slide-header { width: 100%; max-width: 1100px; margin-bottom: 30px; }
 .slide-title {
-  font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.5rem);
+  font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 2.9rem);
   font-weight: 800; color: var(--brown-dark); letter-spacing: -.02em; line-height: 1.1;
 }
 .slide-title::after {
   content: ""; display: block; width: 44px; height: 3px;
-  background: var(--green-primary); border-radius: var(--radius-full); margin-top: 12px;
+  background: var(--green-primary); border-radius: var(--radius-full); margin-top: 10px;
 }
 .slide-subtitle {
-  font-size: .95rem; color: var(--text-muted); margin-top: 8px; line-height: 1.5;
+  font-size: 1rem; color: var(--text-muted); margin-top: 8px; line-height: 1.5;
 }
 
 /* ── Contenu ────────────────────────────────────────────────── */
@@ -150,23 +146,23 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 /* ── Card ───────────────────────────────────────────────────── */
 .card {
   background: var(--beige-card); border: 1px solid var(--beige-border);
-  border-radius: var(--radius-lg); padding: 24px 22px;
+  border-radius: var(--radius-lg); padding: 22px 20px;
   box-shadow: var(--shadow-sm);
 }
 .card-icon { font-size: 1.5rem; margin-bottom: 10px; }
 .card-label {
-  font-size: .65rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: 6px;
 }
-.card-title { font-size: 1rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 8px; line-height: 1.3; }
-.card-body  { font-size: .82rem; color: var(--text-muted); line-height: 1.6; }
+.card-title { font-size: 1.05rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 8px; line-height: 1.3; }
+.card-body  { font-size: .92rem; color: var(--text-muted); line-height: 1.65; }
 
 /* ── Pipeline ───────────────────────────────────────────────── */
 .pipeline {
   display: flex; align-items: center; gap: 0; width: 100%; flex-wrap: nowrap;
 }
 .pipe-step {
-  flex: 1; text-align: center; padding: 18px 10px;
+  flex: 1; text-align: center; padding: 16px 8px;
   background: var(--beige-card); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
   position: relative;
@@ -175,51 +171,60 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   content: "→"; position: absolute; right: -18px; top: 50%; transform: translateY(-50%);
   font-size: 1.1rem; font-weight: 700; color: var(--green-muted); z-index: 1;
 }
-.pipe-icon { font-size: 1.4rem; margin-bottom: 6px; }
-.pipe-name { font-size: .78rem; font-weight: 700; color: var(--brown-dark); line-height: 1.3; }
-.pipe-desc { font-size: .66rem; color: var(--text-faint); margin-top: 4px; line-height: 1.4; }
+.pipe-icon { font-size: 1.3rem; margin-bottom: 5px; }
+.pipe-name { font-size: .8rem; font-weight: 700; color: var(--brown-dark); line-height: 1.3; }
+.pipe-desc { font-size: .68rem; color: var(--text-faint); margin-top: 4px; line-height: 1.4; }
 
-/* ── Liste à puces stylée ───────────────────────────────────── */
+/* Entrée run.py au-dessus du pipeline */
+.pipe-entry {
+  text-align: center; padding: 14px 28px;
+  background: var(--green-primary); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md); display: inline-block;
+}
+.pipe-entry .pipe-name { color: #fff; font-size: .88rem; }
+.pipe-entry .pipe-desc { color: rgba(255,255,255,.75); }
+
+/* ── Liste à puces ──────────────────────────────────────────── */
 .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .bullet-list li {
   display: flex; align-items: flex-start; gap: 10px;
-  font-size: .88rem; color: var(--text-primary); line-height: 1.55;
+  font-size: .96rem; color: var(--text-primary); line-height: 1.6;
 }
 .bullet-list li::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green-primary); flex-shrink: 0; margin-top: 7px;
+  background: var(--green-primary); flex-shrink: 0; margin-top: 8px;
 }
 .bullet-list li strong { color: var(--brown-dark); }
 
 /* ── Badge tech ─────────────────────────────────────────────── */
-.tech-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.tech-grid { display: flex; flex-wrap: wrap; gap: 9px; }
 .tech-badge {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 8px 14px; border-radius: var(--radius-md);
+  padding: 7px 13px; border-radius: var(--radius-md);
   border: 1px solid var(--beige-border); background: var(--beige-card);
   box-shadow: var(--shadow-sm);
-  font-size: .82rem; font-weight: 600; color: var(--brown-dark);
+  font-size: .87rem; font-weight: 600; color: var(--brown-dark);
 }
 .tech-badge .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-/* ── Highlight box ──────────────────────────────────────────── */
+/* ── Highlight / warn ───────────────────────────────────────── */
 .highlight {
   background: var(--green-light); border: 1px solid #C6E0C7; border-left: 4px solid var(--green-primary);
-  border-radius: var(--radius-md); padding: 16px 20px;
-  font-size: .87rem; color: var(--green-hover); line-height: 1.55;
+  border-radius: var(--radius-md); padding: 14px 18px;
+  font-size: .92rem; color: var(--green-hover); line-height: 1.6;
 }
 .highlight strong { color: var(--green-hover); }
 
 .warn-box {
   background: #FBF1DF; border: 1px solid #E7CFA0; border-left: 4px solid var(--brown-warm);
   border-radius: var(--radius-md); padding: 14px 18px;
-  font-size: .85rem; color: #6E4423; line-height: 1.55;
+  font-size: .9rem; color: #6E4423; line-height: 1.6;
 }
 
 /* ── Stat chip ──────────────────────────────────────────────── */
 .stat-chip {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; padding: 20px 16px;
+  gap: 4px; padding: 18px 14px;
   background: var(--beige-card); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
   text-align: center;
@@ -229,7 +234,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   font-weight: 800; color: var(--brown-dark); line-height: 1.1; letter-spacing: -.02em;
 }
 .stat-chip .label {
-  font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
   color: var(--text-muted); line-height: 1.3;
 }
 .stat-chip.green .value { color: var(--green-primary); }
@@ -237,10 +242,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 
 /* ── Source row ─────────────────────────────────────────────── */
 .source-row {
-  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px; padding: 11px 15px;
   background: var(--beige-surface); border: 1px solid var(--beige-border);
   border-radius: var(--radius-md);
-  font-size: .83rem;
+  font-size: .88rem;
 }
 .source-row .tag {
   flex-shrink: 0; padding: 3px 10px; border-radius: var(--radius-full);
@@ -250,11 +255,34 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 .tag-dl   { background: #FBF1DF; color: #7A4800; }
 .tag-geo  { background: #E8E8FB; color: #3A3A8F; }
 .source-name { font-weight: 700; color: var(--brown-dark); flex: 1; }
-.source-desc { color: var(--text-muted); font-size: .78rem; }
+.source-desc { color: var(--text-muted); font-size: .82rem; }
+
+/* ── Proud item ─────────────────────────────────────────────── */
+.proud-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 18px; background: var(--beige-card); border: 1px solid var(--beige-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.proud-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+.proud-title { font-size: .96rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 5px; }
+.proud-body  { font-size: .87rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Insight card ───────────────────────────────────────────── */
+.insight-card {
+  background: var(--beige-card); border: 1px solid var(--beige-border);
+  border-radius: var(--radius-lg); padding: 24px 22px; box-shadow: var(--shadow-sm);
+}
+.insight-num {
+  font-family: var(--font-display); font-size: 2.2rem; font-weight: 800;
+  color: var(--green-light); -webkit-text-stroke: 2px var(--green-primary);
+  line-height: 1; margin-bottom: 10px;
+}
+.insight-title { font-size: .96rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 8px; }
+.insight-body  { font-size: .87rem; color: var(--text-muted); line-height: 1.6; }
 
 /* ── Navigation ─────────────────────────────────────────────── */
 .nav-dots {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
   display: flex; gap: 7px; z-index: 100;
 }
 .nav-dot {
@@ -265,7 +293,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 .nav-dot.active { background: var(--green-muted); transform: scale(1.35); }
 
 .nav-arrows {
-  position: fixed; bottom: 12px; right: 32px; display: flex; gap: 8px; z-index: 100;
+  position: fixed; bottom: 10px; right: 32px; display: flex; gap: 8px; z-index: 100;
 }
 .nav-arrow {
   width: 36px; height: 36px; border-radius: var(--radius-md);
@@ -283,9 +311,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
   z-index: 200;
 }
 
-/* ── Hint (premier chargement) ──────────────────────────────── */
+/* ── Hint ───────────────────────────────────────────────────── */
 .hint {
-  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,.55); color: rgba(255,255,255,.8);
   padding: 7px 18px; border-radius: var(--radius-full); font-size: .72rem;
   font-weight: 600; letter-spacing: .06em; pointer-events: none;
@@ -293,49 +321,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 }
 @keyframes fadeHint { 0%{opacity:0} 15%{opacity:1} 75%{opacity:1} 100%{opacity:0} }
 
-/* ── Scrollable area inside a slide ────────────────────────── */
-.scroll-area { overflow-y: auto; max-height: calc(100vh - 260px); padding-right: 4px; width: 100%; max-width: 1100px; }
+/* ── Scroll area ────────────────────────────────────────────── */
+.scroll-area { overflow-y: auto; max-height: calc(100vh - 240px); padding-right: 4px; width: 100%; max-width: 1100px; }
 .scroll-area::-webkit-scrollbar { width: 6px; }
 .scroll-area::-webkit-scrollbar-track { background: var(--beige-surface); border-radius: 9px; }
 .scroll-area::-webkit-scrollbar-thumb { background: var(--brown-light); border-radius: 9px; }
-
-/* ── Graphique schema ───────────────────────────────────────── */
-.graph-row {
-  display: flex; gap: 12px; align-items: stretch;
-}
-.graph-card {
-  flex: 1; background: var(--beige-card); border: 1px solid var(--beige-border);
-  border-radius: var(--radius-lg); padding: 18px 16px; box-shadow: var(--shadow-sm);
-}
-.graph-type {
-  font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--green-primary); margin-bottom: 6px;
-}
-.graph-name { font-size: .9rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 8px; }
-.graph-why  { font-size: .78rem; color: var(--text-muted); line-height: 1.5; }
-
-/* ── Proud item ─────────────────────────────────────────────── */
-.proud-item {
-  display: flex; gap: 14px; align-items: flex-start;
-  padding: 16px; background: var(--beige-card); border: 1px solid var(--beige-border);
-  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
-}
-.proud-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
-.proud-title { font-size: .9rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 5px; }
-.proud-body  { font-size: .79rem; color: var(--text-muted); line-height: 1.55; }
-
-/* ── Insight card ───────────────────────────────────────────── */
-.insight-card {
-  background: var(--beige-card); border: 1px solid var(--beige-border);
-  border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm);
-}
-.insight-num {
-  font-family: var(--font-display); font-size: 2rem; font-weight: 800;
-  color: var(--green-light); -webkit-text-stroke: 2px var(--green-primary);
-  line-height: 1; margin-bottom: 10px;
-}
-.insight-title { font-size: .9rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 6px; }
-.insight-body  { font-size: .78rem; color: var(--text-muted); line-height: 1.55; }
 </style>
 </head>
 <body>
@@ -360,7 +350,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
     </div>
     <div class="cover-year">BUT Sciences des Données · 2025-2026</div>
 
-    <div class="cover-eyebrow">SAÉ 6.01 — Projet intégrateur</div>
+    <div class="cover-eyebrow">SAE 601 — Développement d'un outil décisionnel</div>
     <div class="cover-title">Un dashboard pour<br>explorer le marché<br><span>immobilier français</span></div>
     <div class="cover-sub">Données ouvertes DVF, DPE, INSEE, SNCF — pipeline automatisé, score d'opportunité composite, cartographie interactive.</div>
     <div class="cover-team">
@@ -368,7 +358,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
       <span class="team-chip">Quentin Ezanno</span>
       <span class="team-chip">Noor Nguia Ada</span>
     </div>
-    <div class="slide-num">01 / 12</div>
+    <div class="slide-num">01 / 09</div>
   </div>
 
   <!-- ══ 2 — CONTEXTE ═══════════════════════════════════════════ -->
@@ -376,16 +366,15 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
     <div class="slide-header">
       <div class="section-badge">🏠 Contexte</div>
       <div class="slide-title">Pourquoi ce projet ?</div>
-      <div class="slide-subtitle">Une question concrète : comment trouver une opportunité d'achat immobilier en France avec des données publiques ?</div>
+      <div class="slide-subtitle">Exploiter les données publiques pour aider à évaluer un bien immobilier.</div>
     </div>
     <div class="slide-body grid-2">
       <div>
         <ul class="bullet-list">
-          <li><strong>Cadre académique</strong> — SAÉ 6.01, BUT Sciences des Données, IUT Laval, année 2025-2026.</li>
-          <li><strong>Problématique</strong> — Les données DVF (Demandes de Valeurs Foncières) sont publiques mais brutes : valeurs aberrantes, natures hétérogènes, adresses non géocodées.</li>
+          <li><strong>Cadre académique</strong> — SAE 601, BUT Sciences des Données, IUT de Vannes, année 2025-2026.</li>
           <li><strong>Objectif</strong> — Construire un pipeline ETL complet et un dashboard interactif permettant de comparer les communes, identifier les prix sous-évalués et qualifier la qualité de vie (DPE, bruit, école, transport).</li>
-          <li><strong>Périmètre</strong> — Sélection par département(s) et année(s), données entièrement téléchargées via API open data.</li>
-          <li><strong>Utilisateur cible</strong> — Un particulier cherchant à acheter un bien, ou un analyste immobilier comparant des marchés locaux.</li>
+          <li><strong>Périmètre</strong> — Sélection par département(s) et année(s), données entièrement récupérées via API et téléchargements open data.</li>
+          <li><strong>Utilisateur cible</strong> — Un particulier cherchant à acheter un bien, en lui laissant le choix de saisir ses critères (commune, budget, surface, DPE…) pour trouver les transactions correspondantes et les comparer au marché local.</li>
         </ul>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px;">
@@ -394,377 +383,238 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
           Toutes les sources utilisées sont open data : DVF (data.gouv.fr), DPE ADEME, INSEE, SNCF, Éducation nationale, IGN.
         </div>
         <div class="slide-body grid-2" style="margin:0;padding:0;">
-          <div class="stat-chip green"><div class="value">7</div><div class="label">Sources de données</div></div>
+          <div class="stat-chip green"><div class="value">8</div><div class="label">Sources de données</div></div>
           <div class="stat-chip"><div class="value">5</div><div class="label">Pages du dashboard</div></div>
-          <div class="stat-chip warm"><div class="value">100%</div><div class="label">API / téléchargement auto</div></div>
-          <div class="stat-chip green"><div class="value">4</div><div class="label">Sous-scores composites</div></div>
+          <div class="stat-chip warm"><div class="value">100%</div><div class="label">Données open data</div></div>
+          <div class="stat-chip green"><div class="value">1</div><div class="label">Fichier base unique</div></div>
         </div>
       </div>
     </div>
-    <div class="slide-num">02 / 12</div>
+    <div class="slide-num">02 / 09</div>
   </div>
 
-  <!-- ══ 3 — ARCHITECTURE ═══════════════════════════════════════ -->
+  <!-- ══ 3 — STACK TECHNIQUE ════════════════════════════════════ -->
   <div class="slide" data-slide="2">
     <div class="slide-header">
-      <div class="section-badge">⚙️ Architecture</div>
-      <div class="slide-title">Pipeline de données</div>
-      <div class="slide-subtitle">Cinq étapes séquentielles, du choix de département au dashboard.</div>
-    </div>
-    <div class="slide-body" style="flex-direction:column;gap:28px;">
-      <div class="pipeline">
-        <div class="pipe-step">
-          <div class="pipe-icon">🗺️</div>
-          <div class="pipe-name">launcher.py</div>
-          <div class="pipe-desc">Sélection<br>départements + années<br>→ selection.json</div>
-        </div>
-        <div style="width:36px;flex-shrink:0;"></div>
-        <div class="pipe-step">
-          <div class="pipe-icon">📥</div>
-          <div class="pipe-name">download_data.py</div>
-          <div class="pipe-desc">Téléchargement<br>DVF · DPE · INSEE<br>BAN · Communes</div>
-        </div>
-        <div style="width:36px;flex-shrink:0;"></div>
-        <div class="pipe-step">
-          <div class="pipe-icon">🔧</div>
-          <div class="pipe-name">init_base.py</div>
-          <div class="pipe-desc">ETL + modèle étoile<br>DuckDB — jointures<br>spatiales + enrichissements</div>
-        </div>
-        <div style="width:36px;flex-shrink:0;"></div>
-        <div class="pipe-step">
-          <div class="pipe-icon">🗄️</div>
-          <div class="pipe-name">back.py</div>
-          <div class="pipe-desc">Couche requêtes<br>SQL → DataFrame<br>Pandas</div>
-        </div>
-        <div style="width:36px;flex-shrink:0;"></div>
-        <div class="pipe-step">
-          <div class="pipe-icon">🌐</div>
-          <div class="pipe-name">front.py</div>
-          <div class="pipe-desc">Dashboard<br>Streamlit — 5 pages<br>interactives</div>
-        </div>
-      </div>
-      <div class="slide-body grid-2" style="margin:0;padding:0;">
-        <div>
-          <div class="card-label" style="margin-bottom:10px;">Tables DuckDB (modèle en étoile)</div>
-          <ul class="bullet-list">
-            <li><strong>fact_dvf</strong> — transactions immobilières (clé de fait)</li>
-            <li><strong>dim_adresses</strong> — adresses géocodées + DPE + PEB + distances gare/école</li>
-            <li><strong>dim_commune</strong> — revenu médian + population (INSEE)</li>
-            <li><strong>dim_communes_geo</strong> — polygones communaux (choroplèthe)</li>
-            <li><strong>dim_gares · dim_ecoles · dim_peb</strong> — tables de dimension annexes</li>
-          </ul>
-        </div>
-        <div>
-          <div class="card-label" style="margin-bottom:10px;">Idempotence & robustesse</div>
-          <ul class="bullet-list">
-            <li>L'ingestion DVF est idempotente <strong>par (département, année)</strong> — un re-run ne détruit pas les autres départements.</li>
-            <li>Chaque fichier téléchargé est <strong>validé</strong> (magic bytes gzip, détection HTML/404) avant insertion en base.</li>
-            <li><strong>Mode démo</strong> complet avec données simulées quand la DB n'est pas chargée.</li>
-            <li>Config centralisée dans <code>config.py</code> : une seule source de vérité pour les URLs, départements et années.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="slide-num">03 / 12</div>
-  </div>
-
-  <!-- ══ 4 — INFRA ═══════════════════════════════════════════════ -->
-  <div class="slide" data-slide="3">
-    <div class="slide-header">
       <div class="section-badge">🖥️ Infrastructure</div>
-      <div class="slide-title">Stack technique</div>
-      <div class="slide-subtitle">Choix délibérément légers : pas de serveur distant, base embarquée, zéro cloud obligatoire.</div>
+      <div class="slide-title">Stack technique & Dépendances</div>
+      <div class="slide-subtitle">Choix légers, zéro cloud requis — tout tourne en local.</div>
     </div>
-    <div class="slide-body grid-2">
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="card">
-          <div class="card-icon">🗄️</div>
-          <div class="card-title">DuckDB — base analytique embarquée</div>
-          <div class="card-body">Un seul fichier <code>info_appart.duckdb</code>. Requêtes SQL OLAP en mémoire, extension spatiale (ST_Distance, ST_Transform), lecture directe de CSV.gz distants sans téléchargement préalable, <code>union_by_name</code> pour fusionner des schémas légèrement différents entre départements.</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">🌐</div>
-          <div class="card-title">Streamlit — interface web réactive</div>
-          <div class="card-body">Pas de framework front-end séparé : Streamlit expose un serveur local (<code>localhost:8501</code>). Session state pour la navigation inter-pages. CSS injecté pour une charte graphique totalement personnalisée.</div>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="card">
-          <div class="card-icon">📡</div>
-          <div class="card-title">Sources accessibles via HTTP</div>
-          <div class="card-body">Toutes les sources sont interrogeables sans authentification. Les fichiers DVF sont des CSV.gz pré-compilés par data.gouv.fr (un fichier par département × année). DPE, gares, écoles, communes : APIs JSON paginées. INSEE : fichiers Excel/CSV statiques.</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">🐍</div>
-          <div class="card-title">Python 3.12 · environnement Anaconda</div>
-          <div class="card-body">Pas de conteneur requis. Le projet tourne directement dans un environnement conda. Le fichier <code>requirements.txt</code> liste les dépendances. Chargement de l'extension spatiale DuckDB automatisé à l'initialisation.</div>
-        </div>
-        <div class="highlight" style="font-size:.82rem;">
-          <strong>Déploiement :</strong> <code>python launcher.py --departements 53</code> puis <code>python download_data.py</code> puis <code>python init_base.py</code> puis <code>streamlit run Dashboard/front.py</code>
-        </div>
-      </div>
-    </div>
-    <div class="slide-num">04 / 12</div>
-  </div>
-
-  <!-- ══ 5 — LIBS ════════════════════════════════════════════════ -->
-  <div class="slide" data-slide="4">
-    <div class="slide-header">
-      <div class="section-badge">📦 Bibliothèques</div>
-      <div class="slide-title">Langage & dépendances</div>
-      <div class="slide-subtitle">Python 3.12 · une bibliothèque par responsabilité, rien de superflu.</div>
-    </div>
-    <div class="slide-body" style="flex-direction:column;gap:24px;">
+    <div class="slide-body" style="flex-direction:column;gap:20px;">
       <div class="tech-grid">
         <div class="tech-badge"><span class="dot" style="background:#3A6B3F"></span>Python 3.12</div>
         <div class="tech-badge"><span class="dot" style="background:#FFA500"></span>DuckDB 0.10+</div>
         <div class="tech-badge"><span class="dot" style="background:#E63946"></span>Streamlit</div>
-        <div class="tech-badge"><span class="dot" style="background:#636EFA"></span>Plotly Express</div>
+        <div class="tech-badge"><span class="dot" style="background:#636EFA"></span>Plotly</div>
         <div class="tech-badge"><span class="dot" style="background:#150458"></span>Pandas</div>
         <div class="tech-badge"><span class="dot" style="background:#11557C"></span>NumPy</div>
         <div class="tech-badge"><span class="dot" style="background:#139C5A"></span>GeoPandas</div>
         <div class="tech-badge"><span class="dot" style="background:#2A6496"></span>Shapely</div>
-        <div class="tech-badge"><span class="dot" style="background:#7A6A58"></span>Requests</div>
         <div class="tech-badge"><span class="dot" style="background:#C9A227"></span>OpenPyXL</div>
         <div class="tech-badge"><span class="dot" style="background:#3D2B1F"></span>Scikit-learn</div>
-        <div class="tech-badge"><span class="dot" style="background:#A6643C"></span>Gzip / io stdlib</div>
       </div>
       <div class="slide-body grid-3" style="margin:0;padding:0;">
         <div class="card">
-          <div class="card-label">Analyse & transformation</div>
-          <div class="card-body"><strong>Pandas</strong> pour toute la manipulation tabulaire. <strong>NumPy</strong> pour les calculs vectorisés (min-max normalisation, remplissage NaN). <strong>Scikit-learn</strong> pour les modèles de régression (estimation de prix).</div>
+          <div class="card-icon">🗄️</div>
+          <div class="card-title">DuckDB — base embarquée</div>
+          <div class="card-body">Un seul fichier <code>info_appart.duckdb</code>. Deux avantages clés : requêtes OLAP analytiques ultra-rapides en mémoire, et lecture native de CSV/GeoJSON sans import préalable.</div>
         </div>
         <div class="card">
-          <div class="card-label">Données spatiales</div>
-          <div class="card-body"><strong>GeoPandas + Shapely</strong> pour lire les Shapefiles des établissements scolaires et effectuer les jointures spatiales de proximité. <strong>DuckDB spatial</strong> (ST_Transform, ST_Distance) pour les calculs de distance gare/école intégrés directement en SQL.</div>
+          <div class="card-icon">🌐</div>
+          <div class="card-title">Streamlit — interface locale</div>
+          <div class="card-body">Pas de framework front séparé. Streamlit expose un serveur local (<code>localhost:8501</code>). CSS injecté pour une charte graphique totalement personnalisée.</div>
         </div>
         <div class="card">
-          <div class="card-label">Visualisation</div>
-          <div class="card-body"><strong>Plotly Express & Graph Objects</strong> pour tous les graphiques (choroplèthes, scatter maps, barres, gauges, corrélations). Charte graphique partagée via un dict <code>CHARTE</code> et une fonction <code>styliser_figure()</code> appliquée à chaque figure.</div>
+          <div class="card-icon">▶️</div>
+          <div class="card-title">Déploiement en une commande</div>
+          <div class="card-body">
+            <code style="background:var(--beige-surface);padding:2px 6px;border-radius:4px;font-size:.85rem;">python run.py --departements 53 --annees 2024</code><br><br>
+            Enchaîne tout automatiquement : sélection → téléchargement → ETL → dashboard. Anaconda suffit, pas de venv nécessaire.
+          </div>
         </div>
       </div>
     </div>
-    <div class="slide-num">05 / 12</div>
+    <div class="slide-num">03 / 09</div>
   </div>
 
-  <!-- ══ 6 — SOURCES ════════════════════════════════════════════ -->
-  <div class="slide" data-slide="5">
+  <!-- ══ 4 — ARCHITECTURE ═══════════════════════════════════════ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-header">
+      <div class="section-badge">⚙️ Architecture</div>
+      <div class="slide-title">Pipeline de données</div>
+      <div class="slide-subtitle">run.py orchestre les quatre étapes séquentielles — du choix des données au dashboard.</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;gap:16px;">
+
+      <!-- run.py en entrée -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;">
+        <div class="pipe-entry">
+          <div class="pipe-icon">▶️</div>
+          <div class="pipe-name">run.py</div>
+          <div class="pipe-desc">Orchestrateur · une seule commande pour tout lancer</div>
+        </div>
+        <div style="font-size:1.5rem;color:var(--green-muted);font-weight:700;line-height:1;">↓</div>
+      </div>
+
+      <!-- pipeline -->
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="pipe-icon">🗺️</div>
+          <div class="pipe-name">launcher.py</div>
+          <div class="pipe-desc">Sélection depts + années → selection.json</div>
+        </div>
+        <div style="width:32px;flex-shrink:0;"></div>
+        <div class="pipe-step">
+          <div class="pipe-icon">📥</div>
+          <div class="pipe-name">download_data.py</div>
+          <div class="pipe-desc">Téléchargement DVF · DPE · INSEE · BAN · Communes</div>
+        </div>
+        <div style="width:32px;flex-shrink:0;"></div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🔧</div>
+          <div class="pipe-name">init_base.py</div>
+          <div class="pipe-desc">ETL + modèle étoile DuckDB · jointures spatiales</div>
+        </div>
+        <div style="width:32px;flex-shrink:0;"></div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🗄️</div>
+          <div class="pipe-name">back.py</div>
+          <div class="pipe-desc">Requêtes SQL → DataFrames Pandas</div>
+        </div>
+        <div style="width:32px;flex-shrink:0;"></div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🌐</div>
+          <div class="pipe-name">front.py</div>
+          <div class="pipe-desc">Dashboard Streamlit · 5 pages interactives</div>
+        </div>
+      </div>
+
+      <!-- tables -->
+      <div class="card" style="width:100%;margin-top:4px;">
+        <div class="card-label" style="margin-bottom:10px;">Tables DuckDB — modèle en étoile</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;font-size:.88rem;">
+          <div><strong style="color:var(--brown-dark);">fact_dvf</strong><br><span style="color:var(--text-muted);">transactions (table de fait)</span></div>
+          <div><strong style="color:var(--brown-dark);">dim_adresses</strong><br><span style="color:var(--text-muted);">géocodage + DPE + PEB + distances</span></div>
+          <div><strong style="color:var(--brown-dark);">dim_commune</strong><br><span style="color:var(--text-muted);">revenu médian + population INSEE</span></div>
+          <div><strong style="color:var(--brown-dark);">dim_communes_geo</strong><br><span style="color:var(--text-muted);">polygones communaux (choroplèthe)</span></div>
+          <div><strong style="color:var(--brown-dark);">dim_gares · dim_ecoles · dim_peb</strong><br><span style="color:var(--text-muted);">dimensions annexes</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">04 / 09</div>
+  </div>
+
+  <!-- ══ 5 — SOURCES ════════════════════════════════════════════ -->
+  <div class="slide" data-slide="4">
     <div class="slide-header">
       <div class="section-badge">📡 Données</div>
       <div class="slide-title">Sources de données</div>
-      <div class="slide-subtitle">7 sources open data, toutes interrogées automatiquement sans intervention manuelle.</div>
+      <div class="slide-subtitle">8 sources open data — certaines interrogeables en temps réel via API, d'autres téléchargées en fichiers (d'où <code>download_data.py</code>).</div>
     </div>
-    <div class="slide-body" style="flex-direction:column;gap:9px;">
+    <div class="slide-body" style="flex-direction:column;gap:8px;">
       <div class="source-row"><span class="tag tag-dl">CSV.gz</span><span class="source-name">geo-DVF (data.gouv.fr)</span><span class="source-desc">Transactions immobilières — 1 fichier par département × année. Coordonnées incluses.</span></div>
-      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">DPE ADEME (data.ademe.fr)</span><span class="source-desc">Diagnostics de performance énergétique — filtré par département et plage d'années.</span></div>
+      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">DPE ADEME (data.ademe.fr)</span><span class="source-desc">Diagnostics de performance énergétique — paginée, filtrée par département et plage d'années.</span></div>
       <div class="source-row"><span class="tag tag-dl">CSV</span><span class="source-name">INSEE FiLoSoFi (data.gouv.fr)</span><span class="source-desc">Revenu médian par commune — millésime le plus récent disponible.</span></div>
       <div class="source-row"><span class="tag tag-dl">XLSX</span><span class="source-name">INSEE Recensement (insee.fr)</span><span class="source-desc">Population communale — 4 millésimes (2020-2023) pour la dimension temporelle.</span></div>
-      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">SNCF OpenData</span><span class="source-desc">Localisation des gares — coordonnées + libellé + département.</span></div>
+      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">SNCF OpenData</span><span class="source-desc">Localisation des gares — coordonnées + libellé.</span></div>
       <div class="source-row"><span class="tag tag-api">Shapefile</span><span class="source-name">Éducation nationale (data.education.gouv.fr)</span><span class="source-desc">Établissements scolaires géolocalisés — archive ZIP multi-fichiers (.shp/.dbf/.prj).</span></div>
-      <div class="source-row"><span class="tag tag-geo">GeoJSON</span><span class="source-name">geo.api.gouv.fr</span><span class="source-desc">Polygones communaux (contours) — pour la carte choroplèthe par commune.</span></div>
-      <div class="source-row"><span class="tag tag-dl">CSV.gz</span><span class="source-name">BAN (adresse.data.gouv.fr)</span><span class="source-desc">Base Adresse Nationale par département — géocodage des adresses DVF sans coordonnées.</span></div>
+      <div class="source-row"><span class="tag tag-geo">GeoJSON</span><span class="source-name">geo.api.gouv.fr</span><span class="source-desc">Polygones communaux (contours) — pour la carte choroplèthe. Téléchargé par département.</span></div>
+      <div class="source-row"><span class="tag tag-dl">CSV.gz</span><span class="source-name">BAN (adresse.data.gouv.fr)</span><span class="source-desc">Base Adresse Nationale — géocodage de secours pour les ventes DVF sans coordonnées GPS.</span></div>
     </div>
-    <div class="slide-num">06 / 12</div>
+    <div class="slide-num">05 / 09</div>
   </div>
 
-  <!-- ══ 7 — FILTRAGE DVF ═══════════════════════════════════════ -->
-  <div class="slide" data-slide="6">
-    <div class="slide-header">
-      <div class="section-badge">🔎 Données DVF</div>
-      <div class="slide-title">Comment on sélectionne les lignes DVF</div>
-      <div class="slide-subtitle">Trois niveaux de filtre successifs — du fichier brut au score final.</div>
-    </div>
-    <div class="slide-body grid-3">
-      <div class="card">
-        <div class="card-label">Niveau 1 — Ingestion (init_base.py)</div>
-        <div class="card-title">Sélection des vraies ventes</div>
-        <div class="card-body">
-          <ul class="bullet-list" style="margin-top:8px;">
-            <li><code>valeur_fonciere IS NOT NULL</code> — prix obligatoire.</li>
-            <li><code>nature_mutation IN ('Vente', 'VEFA')</code> — on exclut les échanges (pas de prix de marché), adjudications (enchères = prix atypiques), terrains à bâtir (fausseraient le €/m²).</li>
-          </ul>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-label">Niveau 2 — Nettoyage des NULLs</div>
-        <div class="card-title">Remplissage défensif</div>
-        <div class="card-body">
-          <ul class="bullet-list" style="margin-top:8px;">
-            <li>Colonnes numériques (<code>surface_reelle_bati</code>, <code>longitude</code>…) → remplies avec <code>0</code>.</li>
-            <li>Colonnes texte (<code>type_local</code>, <code>code_postal</code>…) → remplies avec <code>'NR'</code>.</li>
-            <li><code>code_commune</code> zero-paddé sur 5 caractères pour les jointures INSEE.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-label">Niveau 3 — Requête dashboard</div>
-        <div class="card-title">Filtres à la volée</div>
-        <div class="card-body">
-          <ul class="bullet-list" style="margin-top:8px;">
-            <li><code>surface_reelle_bati &gt; 0</code> et <code>valeur_fonciere &gt; 0</code></li>
-            <li><code>type_local IN ('Maison', 'Appartement')</code> — pas les locaux commerciaux, parkings, caves.</li>
-            <li><code>HAVING nb_ventes ≥ 10</code> — seuil statistique : pas de score sur 2 ventes.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="slide-body" style="margin-top:16px;padding:0;">
-      <div class="warn-box" style="width:100%;">
-        <strong>⚠️ Conséquence sur le nombre de lignes :</strong> le DVF brut contient TOUTES les mutations (terrains, locaux commerciaux, échanges…). Après filtre, on conserve environ 30-50 % des lignes selon le département. Le HAVING ≥ 10 ventes agrège ensuite par commune — une commune avec 3 transactions n'apparaît pas dans les scores.
-      </div>
-    </div>
-    <div class="slide-num">07 / 12</div>
-  </div>
-
-  <!-- ══ 8 — GRAPHIQUES ═════════════════════════════════════════ -->
-  <div class="slide" data-slide="7">
-    <div class="slide-header">
-      <div class="section-badge">📊 Visualisation</div>
-      <div class="slide-title">Choix des graphiques</div>
-      <div class="slide-subtitle">Chaque type de graphique est choisi pour la question qu'il répond, pas pour l'esthétique.</div>
-    </div>
-    <div class="slide-body" style="flex-direction:column;gap:12px;">
-      <div class="graph-row">
-        <div class="graph-card">
-          <div class="graph-type">Spatial</div>
-          <div class="graph-name">Choroplèthe communal</div>
-          <div class="graph-why">Répond à "où sont les communes les moins chères ?" — la couleur encode le prix médian, la géographie révèle des gradients (centre-ville vs périphérie) invisibles dans un tableau.</div>
-        </div>
-        <div class="graph-card">
-          <div class="graph-type">Spatial</div>
-          <div class="graph-name">Scatter map (points)</div>
-          <div class="graph-why">Quand les communes sont peu nombreuses, les points permettent de localiser chaque vente précisément. En mode zoom, on voit les micro-variations intra-communales.</div>
-        </div>
-        <div class="graph-card">
-          <div class="graph-type">Comparaison</div>
-          <div class="graph-name">Barres horizontales</div>
-          <div class="graph-why">Comparaison des prix médians entre communes ou entre types DPE. Axe Y lisible même avec des noms longs. Tri par valeur décroissante pour un ranking immédiat.</div>
-        </div>
-      </div>
-      <div class="graph-row">
-        <div class="graph-card">
-          <div class="graph-type">Temporel</div>
-          <div class="graph-name">Courbe linéaire</div>
-          <div class="graph-why">Évolution mensuelle des prix sur 2024-2025. La continuité de la ligne rend les tendances (hausse, baisse, saisonnalité) plus lisibles qu'un bar chart temporel.</div>
-        </div>
-        <div class="graph-card">
-          <div class="graph-type">Score</div>
-          <div class="graph-name">Jauge semi-circulaire</div>
-          <div class="graph-why">Le score d'opportunité est une valeur entre 0 et 1 — la jauge communique instantanément si une commune est "bonne" ou "mauvaise" sans que l'utilisateur lise un nombre.</div>
-        </div>
-        <div class="graph-card">
-          <div class="graph-type">Corrélation</div>
-          <div class="graph-name">Scatter plot</div>
-          <div class="graph-why">Relation revenu-médian × prix €/m² ou DPE × prix. Le nuage de points révèle les outliers (communes atypiques) et le sens de la corrélation sans présupposer sa forme.</div>
-        </div>
-      </div>
-    </div>
-    <div class="slide-num">08 / 12</div>
-  </div>
-
-  <!-- ══ 9 — PROBLÈMES ══════════════════════════════════════════ -->
-  <div class="slide" data-slide="8">
+  <!-- ══ 6 — PROBLÈMES ══════════════════════════════════════════ -->
+  <div class="slide" data-slide="5">
     <div class="slide-header">
       <div class="section-badge">🐛 Obstacles</div>
       <div class="slide-title">Problèmes rencontrés</div>
-      <div class="slide-subtitle">Les bugs les plus formateurs — et comment on les a résolus.</div>
+      <div class="slide-subtitle">Les défis techniques les plus marquants du projet.</div>
     </div>
     <div class="slide-body grid-2">
       <ul class="bullet-list">
-        <li><strong>urlretrieve silencieux sur 404</strong> — data.gouv.fr peut renvoyer une page HTML en réponse à un département inexistant. Le fichier `.csv.gz` reçu était du HTML, jamais signalé. Solution : validation post-téléchargement (magic bytes gzip + détection HTML).</li>
-        <li><strong>pd.NA incompatible float64</strong> — <code>pd.Series(pd.NA, dtype="float64")</code> lève une TypeError avec les backends NumPy de Pandas. Remplacé par <code>np.nan</code>.</li>
-        <li><strong>width='stretch' Streamlit</strong> — paramètre ajouté dans une version future, absent de la version installée. Remplacé par <code>use_container_width=True</code>.</li>
-        <li><strong>code_postal inféré int vs str</strong> — selon le département, DuckDB infère le type de code_postal comme entier (53) ou chaîne. Résolu par <code>ALTER COLUMN … TYPE VARCHAR</code> avant tout remplissage texte.</li>
+        <li><strong>Chargement de données très lent</strong> — Les fichiers DVF font plusieurs centaines de Mo par département. La pagination de l'API DPE ADEME (milliers de pages) ajoute plusieurs minutes. Résolu en parallélisant et en ajoutant des indicateurs de progression.</li>
+        <li><strong>Difficultés à récupérer les données</strong> — Certaines APIs renvoient des redirections 302 silencieuses ou des pages HTML en cas d'erreur 404 (data.gouv.fr pour un département inexistant). Résolu par validation post-téléchargement : magic bytes gzip + détection de contenu HTML.</li>
+        <li><strong>Valeurs manquantes incompatibles</strong> — <code>pd.Series(pd.NA, dtype="float64")</code> lève une TypeError avec les backends NumPy de Pandas. Après réflexion, remplacé par <code>np.nan</code> pour garantir la compatibilité.</li>
       </ul>
       <ul class="bullet-list">
-        <li><strong>Scores dégénérés</strong> — quand la colonne DPE ou PEB est absente, <code>_minmax</code> retournait 0.5 constant pour toutes les communes (facteur sans variance = pas de signal). Résolu avec une pondération adaptative : le poids d'un facteur dégénéré passe à 0 et les poids restants sont renormalisés.</li>
-        <li><strong>Jointure DPE × DVF par adresse</strong> — les adresses DVF et DPE utilisent des formats différents ("r.", "av.", abréviations, accents). Résolu par une macro SQL <code>normaliser_adresse()</code> (strip accents, expansion d'abréviations, suppression ponctuation).</li>
-        <li><strong>Colonnes DBF tronquées à 10 car.</strong> — le format Shapefile tronque les noms de colonnes. <code>'appellation_officielle'</code> devient <code>'appellation'</code>. Résolu par une détection multi-noms dans le code de lecture.</li>
+        <li><strong>Perte de données aux jointures</strong> — Les jointures spatiales DPE × DVF par adresse (normalisation des voies) et la jointure géographique sans coordonnées GPS faisaient chuter le nombre de lignes exploitables. Résolu avec la BAN en géocodage de secours et une macro SQL de normalisation d'adresse.</li>
+        <li><strong>Problèmes avec les polygones communaux</strong> — Les contours GeoJSON n'étaient téléchargés qu'une seule fois. Ajouter de nouveaux départements ne mettait pas à jour le fichier. Résolu en régénérant systématiquement le GeoJSON à chaque exécution pour le périmètre courant.</li>
+        <li><strong>Colonnes Shapefile tronquées</strong> — Le format DBF tronque les noms de colonnes à 10 caractères. <code>'appellation_officielle'</code> devenait <code>'appellation'</code>. Résolu par une détection multi-noms au moment de la lecture.</li>
       </ul>
     </div>
-    <div class="slide-num">09 / 12</div>
+    <div class="slide-num">06 / 09</div>
   </div>
 
-  <!-- ══ 10 — FIERS ══════════════════════════════════════════════ -->
-  <div class="slide" data-slide="9">
+  <!-- ══ 7 — FIERS ══════════════════════════════════════════════ -->
+  <div class="slide" data-slide="6">
     <div class="slide-header">
       <div class="section-badge">🏆 Points forts</div>
       <div class="slide-title">Ce dont on est fiers</div>
-      <div class="slide-subtitle">Les choix techniques qui font la différence.</div>
+      <div class="slide-subtitle">Les choix techniques qui font vraiment la différence.</div>
     </div>
     <div class="slide-body grid-2">
       <div class="proud-item">
         <div class="proud-icon">🤖</div>
-        <div><div class="proud-title">Pipeline 100 % automatisé</div><div class="proud-body">Aucun fichier manuel : une commande lance le téléchargement de toutes les sources (DVF, DPE, INSEE, BAN, gares, écoles, communes). Le dashboard se charge seul.</div></div>
+        <div>
+          <div class="proud-title">Pipeline 100 % automatisé</div>
+          <div class="proud-body">Une seule commande <code>python run.py</code> lance le téléchargement de toutes les sources (DVF, DPE, INSEE, BAN, gares, écoles, communes), construit la base et ouvre le dashboard.</div>
+        </div>
       </div>
       <div class="proud-item">
         <div class="proud-icon">⚖️</div>
-        <div><div class="proud-title">Score composite adaptatif</div><div class="proud-body">La pondération s'ajuste automatiquement si un facteur est absent (DPE, PEB, revenu). Les 3 facteurs restants absorbent le poids et le score reste comparable entre communes.</div></div>
+        <div>
+          <div class="proud-title">Score composite adaptatif</div>
+          <div class="proud-body">La pondération s'ajuste automatiquement si un facteur est absent (DPE non disponible, PEB non couvert, revenu manquant). Les facteurs restants absorbent le poids — le score reste comparable entre communes.</div>
+        </div>
       </div>
       <div class="proud-item">
         <div class="proud-icon">🎨</div>
-        <div><div class="proud-title">Charte graphique cohérente</div><div class="proud-body">CSS variables partagées entre le dashboard Streamlit et Plotly. Une seule modification du token <code>--green-primary</code> propage la couleur partout — aucune duplication.</div></div>
-      </div>
-      <div class="proud-item">
-        <div class="proud-icon">🔁</div>
-        <div><div class="proud-title">ETL idempotent par département</div><div class="proud-body">Ajouter le département 35 ne détruit pas les données du 53 déjà chargées. Chaque couple (département, année) est géré indépendamment via DELETE ciblé + INSERT.</div></div>
+        <div>
+          <div class="proud-title">Charte graphique cohérente</div>
+          <div class="proud-body">CSS variables partagées entre Streamlit et Plotly. Une seule modification du token <code>--green-primary</code> propage la couleur sur tout le dashboard — aucune duplication.</div>
+        </div>
       </div>
       <div class="proud-item">
         <div class="proud-icon">📍</div>
-        <div><div class="proud-title">Géocodage avec fallback BAN</div><div class="proud-body">Les ventes DVF sans coordonnées GPS sont géocodées via la BAN locale plutôt qu'éliminées. Cela préserve des dizaines de milliers de transactions supplémentaires.</div></div>
-      </div>
-      <div class="proud-item">
-        <div class="proud-icon">🖥️</div>
-        <div><div class="proud-title">Mode démo complet</div><div class="proud-body">Toutes les pages du dashboard fonctionnent avec des données simulées reproduisant fidèlement la structure réelle. Permet de démontrer sans base chargée.</div></div>
+        <div>
+          <div class="proud-title">Géocodage avec fallback BAN</div>
+          <div class="proud-body">Les ventes DVF sans coordonnées GPS sont récupérées via la BAN locale plutôt qu'éliminées. Cela préserve des dizaines de milliers de transactions qui auraient été perdues.</div>
+        </div>
       </div>
     </div>
-    <div class="slide-num">10 / 12</div>
+    <div class="slide-num">07 / 09</div>
   </div>
 
-  <!-- ══ 11 — INSIGHTS ══════════════════════════════════════════ -->
-  <div class="slide" data-slide="10">
+  <!-- ══ 8 — INSIGHTS ══════════════════════════════════════════ -->
+  <div class="slide" data-slide="7">
     <div class="slide-header">
       <div class="section-badge">💡 Observations</div>
       <div class="slide-title">Remarques intéressantes sur les données</div>
-      <div class="slide-subtitle">Ce que les données DVF × DPE × INSEE révèlent vraiment.</div>
+      <div class="slide-subtitle">Ce que les données DVF × DPE × INSEE révèlent — ordres de grandeur observés ou issus de la littérature immobilière.</div>
     </div>
     <div class="slide-body grid-3">
       <div class="insight-card">
-        <div class="insight-num">×5</div>
-        <div class="insight-title">Amplitude des prix au sein d'un même département</div>
-        <div class="insight-body">Le prix €/m² médian peut varier d'un facteur 5 à 10 entre la commune la plus chère et la moins chère d'un département. L'effet "proximité centre-ville" est dominant.</div>
-      </div>
-      <div class="insight-card">
         <div class="insight-num">F/G</div>
         <div class="insight-title">DPE et période de construction corrélés</div>
-        <div class="insight-body">Les bâtiments construits avant 1975 (avant les premières normes thermiques RT) obtiennent massivement des étiquettes F et G. Ce signal est utilisable pour anticiper des travaux.</div>
+        <div class="insight-body">Les bâtiments construits avant 1975 (avant les premières normes thermiques RT 1974) obtiennent massivement des étiquettes F et G. Ce signal est directement lisible dans notre base en croisant <code>annee_construction</code> et <code>etiquette_dpe</code>.</div>
       </div>
       <div class="insight-card">
         <div class="insight-num">+12%</div>
         <div class="insight-title">Premium "gare" mesurable</div>
-        <div class="insight-body">Les communes disposant d'une gare SNCF à moins de 2 km présentent en moyenne un prix €/m² supérieur de 8 à 12 % par rapport aux communes sans gare du même département.</div>
-      </div>
-      <div class="insight-card">
-        <div class="insight-num">15-20%</div>
-        <div class="insight-title">Part des VEFA dans les transactions</div>
-        <div class="insight-body">Les ventes en état futur d'achèvement (neuf sur plan) représentent 15-20 % des transactions retenues. Leur prix est systématiquement plus élevé de 15-25 % par rapport à l'ancien.</div>
+        <div class="insight-body">Les communes avec une gare SNCF à moins de 2 km affichent un prix €/m² supérieur d'environ 8 à 12 % par rapport aux communes sans gare du même département. Cet écart est calculable directement depuis <code>dist_gare_km</code> dans notre modèle.</div>
       </div>
       <div class="insight-card">
         <div class="insight-num">−8%</div>
         <div class="insight-title">Décote PEB aéroportuaire</div>
-        <div class="insight-body">Les communes en zone de bruit aéroportuaire (plan PEB zones A-D) présentent un prix médian inférieur de 5 à 15 % par rapport aux communes comparables hors zone.</div>
-      </div>
-      <div class="insight-card">
-        <div class="insight-num">Avr–Juil</div>
-        <div class="insight-title">Saisonnalité marquée</div>
-        <div class="insight-body">Le volume de transactions culmine entre avril et juillet (printemps immobilier). Le creux est de novembre à janvier. Le prix médian suit partiellement ce cycle mais avec un décalage de 1-2 mois.</div>
+        <div class="insight-body">Les communes en zone de bruit aéroportuaire (plan PEB zones A-D) affichent un prix médian inférieur de 5 à 15 % par rapport aux communes comparables hors zone. La page "Analyses" du dashboard présente cette décote par zone et par aéroport.</div>
       </div>
     </div>
-    <div class="slide-num">11 / 12</div>
+    <div class="slide-num">08 / 09</div>
   </div>
 
-  <!-- ══ 12 — FIN ════════════════════════════════════════════════ -->
-  <div class="slide slide-cover" data-slide="11">
+  <!-- ══ 9 — FIN ════════════════════════════════════════════════ -->
+  <div class="slide slide-cover" data-slide="8">
     <div class="cover-logo">
       <svg width="38" height="38" viewBox="0 0 36 36" fill="none">
         <rect width="36" height="36" rx="9" fill="#3a6b3f"/>
@@ -781,16 +631,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
 
     <div class="cover-eyebrow">Merci de votre attention</div>
     <div class="cover-title">Des questions ?</div>
-    <div class="cover-sub">Le dashboard tourne localement avec <code style="color:#6B9E70;">streamlit run Dashboard/front.py</code>.<br>Les données se téléchargent en une commande.</div>
+    <div class="cover-sub">Lancez le projet avec <code style="color:#6B9E70;">python run.py</code>.<br>Toutes les données se téléchargent automatiquement.</div>
     <div class="cover-team" style="margin-top:0;">
       <span class="team-chip">Nouhayla Bahaddou</span>
       <span class="team-chip">Quentin Ezanno</span>
       <span class="team-chip">Noor Nguia Ada</span>
     </div>
-    <div style="position:absolute;bottom:80px;left:80px;right:80px;">
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:640px;">
+    <div style="position:absolute;bottom:72px;left:80px;right:80px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:560px;">
         <div class="stat-chip" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
-          <div class="value" style="color:#6B9E70;font-size:1.6rem;">7</div>
+          <div class="value" style="color:#6B9E70;font-size:1.6rem;">8</div>
           <div class="label" style="color:rgba(255,255,255,.5);">Sources</div>
         </div>
         <div class="stat-chip" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
@@ -798,25 +648,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
           <div class="label" style="color:rgba(255,255,255,.5);">Pages</div>
         </div>
         <div class="stat-chip" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
-          <div class="value" style="color:#6B9E70;font-size:1.6rem;">4</div>
-          <div class="label" style="color:rgba(255,255,255,.5);">Sous-scores</div>
-        </div>
-        <div class="stat-chip" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
           <div class="value" style="color:#6B9E70;font-size:1.6rem;">7</div>
           <div class="label" style="color:rgba(255,255,255,.5);">Tables DB</div>
         </div>
         <div class="stat-chip" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);">
-          <div class="value" style="color:#6B9E70;font-size:1.6rem;">0</div>
-          <div class="label" style="color:rgba(255,255,255,.5);">Fichier manuel</div>
+          <div class="value" style="color:#6B9E70;font-size:1.6rem;">1</div>
+          <div class="label" style="color:rgba(255,255,255,.5);">Fichier DB</div>
         </div>
       </div>
     </div>
-    <div class="slide-num">12 / 12</div>
+    <div class="slide-num">09 / 09</div>
   </div>
 
 </div><!-- /deck -->
 
-<!-- ── Navigation ───────────────────────────────────────────── -->
 <div class="nav-dots" id="navDots"></div>
 <div class="nav-arrows">
   <button class="nav-arrow" id="btnPrev" title="Précédent">←</button>
@@ -830,7 +675,6 @@ const dotsEl   = document.getElementById('navDots');
 const progress = document.getElementById('progress');
 let current    = 0;
 
-/* Construire les points de navigation */
 slides.forEach((_, i) => {
   const d = document.createElement('button');
   d.className = 'nav-dot' + (i === 0 ? ' active' : '');
@@ -841,16 +685,13 @@ slides.forEach((_, i) => {
 
 function goTo(n) {
   if (n === current) return;
-  const dir = n > current ? 1 : -1;
   slides[current].classList.add('exit');
   slides[current].classList.remove('active');
-  setTimeout(() => slides[current - dir < 0 ? 0 : current].classList.remove('exit'), 320);
+  setTimeout(() => slides[current].classList.remove('exit'), 320);
   current = n;
   slides[current].classList.add('active');
-  /* points */
   document.querySelectorAll('.nav-dot').forEach((d, i) =>
     d.classList.toggle('active', i === current));
-  /* barre */
   progress.style.width = ((current + 1) / slides.length * 100) + '%';
 }
 
@@ -867,7 +708,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* barre initiale */
 progress.style.width = (1 / slides.length * 100) + '%';
 </script>
 </body>
