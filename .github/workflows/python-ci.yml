@@ -1,0 +1,47 @@
+name: Python CI
+
+# CI minimale (Domain 8, 2026-06-05) :
+# - on installe les dépendances via pip + requirements.txt (PLUS de conda/environment.yml,
+#   ce fichier n'existe pas dans le dépôt) ;
+# - on lance flake8 en deux passes : une passe BLOQUANTE qui n'attrape que les erreurs de
+#   syntaxe / noms indéfinis, puis une passe de STYLE non bloquante (avertissements) ;
+# - on compile (py_compile) les scripts principaux comme smoke test, SANS exécuter l'ETL
+#   (celui-ci a besoin du réseau + DuckDB + fichiers de données, indisponibles en CI).
+# - PAS d'étape pytest : aucun vrai test n'existe encore (test_jointure.py est déprécié,
+#   ce n'est pas un test). À réintroduire quand de vrais tests seront ajoutés.
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        pip install -r requirements.txt
+
+    - name: Lint with flake8 (erreurs bloquantes)
+      run: |
+        # Passe bloquante : uniquement erreurs de syntaxe et noms indéfinis.
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Lint with flake8 (style, non bloquant)
+      run: |
+        # Passe de style : tout est traité en avertissement (--exit-zero).
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Smoke test (py_compile des scripts principaux)
+      run: |
+        # On vérifie seulement que les scripts compilent ; on N'EXÉCUTE PAS l'ETL
+        # (réseau / DuckDB / données absentes en CI).
+        python -m py_compile config.py launcher.py download_data.py init_base.py Dashboard/back.py Dashboard/front.py
