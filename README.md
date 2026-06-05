@@ -88,7 +88,7 @@ Pas besoin de créer un environnement virtuel — un `pip install` global dans A
 
 | Option | Effet |
 |---|---|
-| `--departements 53,35` | choisir les départements |
+| `--departements "53,35"` | choisir plusieurs départements |
 | `--region Bretagne` | choisir une région entière |
 | `--annees 2022,2023,2024` | choisir les années DVF |
 | `--skip-download` | réutiliser les fichiers `data/` déjà téléchargés |
