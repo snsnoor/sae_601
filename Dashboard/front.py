@@ -358,34 +358,6 @@ def page_vue_globale():
                 st.info("🗺️ Carte interactive disponible une fois la base initialisée (mode démo actif).")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── Top communes par type ─────────────────────────────────────────────────
-        if DB_READY:
-            df_top_types = back.get_top_communes_par_type(n=12, region=region_selectionnee)
-            if not df_top_types.empty:
-                max_prix = float(df_top_types['prix_tous'].max()) if df_top_types['prix_tous'].notna().any() else 1.0
-                rows_html = ""
-                for _, r in df_top_types.iterrows():
-                    pct    = int((float(r['prix_tous'] or 0) / max_prix) * 100) if max_prix else 0
-                    p_tous = f"{int(r['prix_tous']):,}".replace(',', ' ') + ' €' if pd.notna(r['prix_tous']) else '—'
-                    p_appt = f"{int(r['prix_appart']):,}".replace(',', ' ') if pd.notna(r['prix_appart']) else '—'
-                    p_mais = f"{int(r['prix_maison']):,}".replace(',', ' ') if pd.notna(r['prix_maison']) else '—'
-                    rows_html += f"""
-                    <div class="commune-bar-item">
-                      <div class="commune-bar-name">{str(r['nom_commune']).title()}</div>
-                      <div class="commune-bar-wrap">
-                        <div class="commune-bar-fill" style="width:{pct}%"></div>
-                      </div>
-                      <div class="commune-bar-prix">{p_tous}/m²</div>
-                      <div class="commune-bar-sub">Appt: {p_appt} · Maison: {p_mais}</div>
-                    </div>
-                    """
-                st.markdown(f"""
-                <div class="card" style="margin-top:16px;">
-                  <div class="card-title">🏘️ Top communes — Prix médian par type</div>
-                  <div class="commune-bar-list">{rows_html}</div>
-                </div>
-                """, unsafe_allow_html=True)
-
         # ── Evolution mensuelle ────────────────────────────────────────────────────
         st.markdown("""
         <div class="card" style="margin-top:16px;">
