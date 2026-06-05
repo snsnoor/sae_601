@@ -1,290 +1,165 @@
 /* ============================================================
-   Direction artistique : Dashboard immobilier France — ImmoFrance
-   Charte graphique : beige · marron · vert
-   Typographie : pile système sûre (pas de CDN, fonctionne hors-ligne)
-   Densité : dense (dashboard)
+   Art direction: Dashboard immobilier France
+   Palette: beige chaud + marron + vert forêt
+   Typography: Cabinet Grotesk (display) + Satoshi (body)
    ============================================================ */
 
-/* Polices : pile système sûre + repli Satoshi/Cabinet Grotesk si déjà
-   installées localement. Aucun appel réseau (l'app peut tourner hors-ligne). */
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap');
 
-/* ── Tokens (variables de la charte partagée avec front.py) ──── */
+/* ── Tokens ──────────────────────────────────────────────── */
 :root {
-  /* Beiges */
-  --beige-bg:       #FAF6EF;   /* fond de page */
-  --beige-card:     #FFFFFF;   /* surface des cartes */
-  --beige-surface:  #F6EFE3;   /* surface alternative */
-  --beige-border:   #E6DBC9;   /* bordure beige */
+  --beige-bg:       #f5f0e8;
+  --beige-surface:  #ede8df;
+  --beige-card:     #faf7f2;
+  --beige-border:   oklch(0.55 0.04 70 / 0.15);
 
-  /* Verts (marque) */
-  --green-primary:  #3A6B3F;   /* vert principal */
-  --green-hover:    #2C5230;   /* vert foncé (hover / titres) */
-  --green-muted:    #6B9E70;   /* vert clair (accent) */
-  --green-light:    #EAF2EA;   /* halo vert très clair (fonds discrets) */
+  --brown-dark:     #3d2b1f;
+  --brown-mid:      #7a5c44;
+  --brown-light:    #c4a882;
 
-  /* Marrons (texte & accents) */
-  --brown-dark:     #3D2B1F;   /* marron texte principal */
-  --brown-mid:      #7A6A58;   /* marron texte secondaire */
-  --brown-warm:     #A6643C;   /* marron chaud (deltas, highlights, hovers) */
-  --brown-light:    #C4A882;   /* marron clair (sur fond foncé sidebar) */
+  --green-primary:  #3a6b3f;
+  --green-hover:    #2d5431;
+  --green-light:    #e8f2e9;
+  --green-muted:    #6b9e70;
 
-  /* Texte */
-  --text-primary:   #3D2B1F;   /* texte principal (marron foncé) */
-  --text-muted:     #7A6A58;   /* texte secondaire (marron doux) */
-  --text-faint:     #A6957F;   /* texte tertiaire / discret */
+  --orange:         #e07b39;
+  --orange-light:   #fdf0e6;
 
-  /* Couleurs sémantiques */
-  --sem-good:       #2D6A4F;   /* bonne affaire (vert) */
-  --sem-over:       #B23A2E;   /* surcoté (rouge brique chaud) */
-  --sem-neutral:    #C9A227;   /* neutre (ambre) */
+  --text-primary:   #2a1f14;
+  --text-muted:     #7a6a58;
+  --text-faint:     #b8a898;
 
-  /* Ombres douces teintées chaud (marron) */
-  --shadow-sm: 0 1px 2px rgba(61, 43, 31, 0.06), 0 2px 6px rgba(61, 43, 31, 0.05);
-  --shadow-md: 0 4px 12px rgba(61, 43, 31, 0.10), 0 2px 4px rgba(61, 43, 31, 0.06);
-  --shadow-lg: 0 12px 28px rgba(61, 43, 31, 0.14), 0 4px 10px rgba(61, 43, 31, 0.08);
+  --shadow-sm: 0 1px 3px oklch(0.25 0.04 70 / 0.08);
+  --shadow-md: 0 4px 12px oklch(0.25 0.04 70 / 0.10);
 
-  /* Anneau de focus accessible (vert) */
-  --focus-ring: 0 0 0 3px rgba(58, 107, 63, 0.30);
-
-  /* Rayons */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --radius-full: 9999px;
 
-  /* Typographie : repli système, conserve Satoshi/Cabinet Grotesk si présents */
-  --font-display: 'Cabinet Grotesk', 'Satoshi', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  --font-body:    'Satoshi', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Georgia', sans-serif;
+  --font-body:    'Satoshi', 'Inter', sans-serif;
 
-  /* Espacement — rythme basé sur 8px (4 = demi-pas) */
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
   --space-4: 16px; --space-5: 20px; --space-6: 24px;
   --space-8: 32px; --space-10: 40px; --space-12: 48px;
-
-  /* ── Échelle typographique (modulaire ~1.20, base 16px) ──── */
-  --fs-caption: 0.72rem;   /* légendes, sous-textes discrets */
-  --fs-overline:0.65rem;   /* étiquettes en capitales (overline) */
-  --fs-label:   0.82rem;   /* étiquettes de formulaire / corps menu */
-  --fs-body:    0.9rem;    /* corps de texte courant */
-  --fs-lead:    1.0rem;    /* texte d'introduction */
-  --fs-h4:      1.0rem;    /* titres de carte */
-  --fs-h3:      1.18rem;   /* sous-titres de section */
-  --fs-h2:      1.45rem;   /* titres secondaires */
-  --fs-h1:      1.9rem;    /* titre de page */
-
-  /* Hauteurs de ligne cohérentes */
-  --lh-tight:   1.15;      /* titres */
-  --lh-snug:    1.35;      /* sous-titres / valeurs */
-  --lh-normal:  1.55;      /* corps */
-  --lh-loose:   1.7;       /* texte aéré (notes) */
-
-  /* Interlettrage (tracking) */
-  --tracking-tight:  -0.02em;  /* gros titres */
-  --tracking-normal:  0;
-  --tracking-wide:    0.06em;  /* étiquettes */
-  --tracking-wider:   0.1em;   /* overlines en capitales */
-
-  /* Poids */
-  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700; --fw-black: 800;
-
-  /* Mouvement — durées & courbes partagées (micro-interactions) */
-  --ease-out:   cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-soft:  cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast:   120ms;
-  --dur-base:   180ms;
-  --dur-slow:   260ms;
 }
 
-/* ── Reset & base ─────────────────────────────────────────── */
+/* ── Reset & Base ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-body { font-family: var(--font-body); background: var(--beige-bg); color: var(--text-primary);
-  font-size: var(--fs-body); line-height: var(--lh-normal); letter-spacing: var(--tracking-normal); }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-body); background: var(--beige-bg); color: var(--text-primary); }
 
-/* Sélection de texte harmonisée à la charte (halo vert) */
-::selection { background: rgba(58, 107, 63, 0.22); color: var(--brown-dark); }
-
-/* L'app Streamlit utilise aussi le fond beige */
-.stApp, [data-testid="stAppViewContainer"] { background: var(--beige-bg); }
-
-/* ── Masquage du chrome Streamlit ──────────────────────────── */
+/* ── Hide Streamlit chrome ─────────────────────────────────── */
 #MainMenu, footer, header { visibility: hidden; }
 .stDeployButton { display: none; }
 div[data-testid="stToolbar"] { display: none; }
 
-/* ── Barre latérale ───────────────────────────────────────── */
+/* ── Sidebar ──────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
-  background: linear-gradient(180deg, var(--brown-dark) 0%, #2E2016 100%) !important;
+  background: var(--brown-dark) !important;
   border-right: none !important;
-  box-shadow: var(--shadow-md);
 }
 section[data-testid="stSidebar"] > div { padding: var(--space-6) var(--space-5) !important; }
 
 .sidebar-logo {
   display: flex; align-items: center; gap: var(--space-3);
   margin-bottom: var(--space-8); padding-bottom: var(--space-6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 1px solid oklch(1 0 0 / 0.1);
 }
-.sidebar-logo svg { flex-shrink: 0; color: var(--green-muted); }
-.sidebar-logo-text { font-family: var(--font-display); font-size: 1.25rem; font-weight: var(--fw-black);
-  color: #fff; letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); }
-.sidebar-logo-sub  { font-size: var(--fs-caption); color: var(--brown-light); letter-spacing: var(--tracking-wide);
-  text-transform: uppercase; margin-top: 2px; line-height: var(--lh-snug); }
+.sidebar-logo svg { flex-shrink: 0; }
+.sidebar-logo-text { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800;
+  color: #fff; letter-spacing: -0.02em; line-height: 1.1; }
+.sidebar-logo-sub  { font-size: 0.7rem; color: var(--brown-light); letter-spacing: 0.06em;
+  text-transform: uppercase; margin-top: 2px; }
 
 .nav-section-label {
-  font-size: var(--fs-overline); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider);
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--brown-light);
   margin: var(--space-6) 0 var(--space-2);
 }
 .nav-link {
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
-  font-size: var(--fs-label); font-weight: var(--fw-medium); color: rgba(255, 255, 255, 0.72);
-  line-height: var(--lh-snug); min-height: 40px;
-  cursor: pointer; position: relative;
-  transition: background var(--dur-base) var(--ease-soft), color var(--dur-base) var(--ease-soft), transform var(--dur-fast) var(--ease-out);
+  font-size: 0.875rem; font-weight: 500; color: oklch(1 0 0 / 0.7);
+  cursor: pointer; transition: background 180ms, color 180ms;
   border: none; background: none; width: 100%; text-align: left;
 }
-.nav-link:hover   { background: rgba(255, 255, 255, 0.08); color: #fff; transform: translateX(2px); }
-.nav-link:active  { transform: translateX(1px) scale(0.99); }
-/* État actif : barre verte de marque à gauche */
-.nav-link.active  {
-  background: var(--green-primary); color: #fff;
-  box-shadow: inset 3px 0 0 var(--green-muted);
-}
-.nav-link.active svg { opacity: 1; }
-/* Focus accessible au clavier pour les boutons de navigation */
-.nav-link:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(107, 158, 112, 0.55);
-}
-.nav-link svg     { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.nav-link:hover   { background: oklch(1 0 0 / 0.07); color: #fff; }
+.nav-link.active  { background: var(--green-primary); color: #fff; }
+.nav-link svg     { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
 
 .sidebar-footer {
   margin-top: auto; padding-top: var(--space-6);
-  border-top: 1px solid rgba(255, 255, 255, 0.10);
-  font-size: var(--fs-caption); color: var(--brown-light); line-height: var(--lh-normal);
+  border-top: 1px solid oklch(1 0 0 / 0.1);
+  font-size: 0.7rem; color: var(--brown-light); line-height: 1.5;
 }
-.sidebar-footer strong { color: rgba(255, 255, 255, 0.80); display: block; margin-bottom: 2px; }
+.sidebar-footer strong { color: oklch(1 0 0 / 0.7); display: block; margin-bottom: 2px; }
 
-/* ── Contenu principal ─────────────────────────────────────── */
+/* ── Main content ──────────────────────────────────────────── */
 .main-content { padding: var(--space-8) var(--space-8); max-width: 1400px; }
 
-.page-header {
-  margin-bottom: var(--space-8); padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--beige-border);
-}
+.page-header { margin-bottom: var(--space-8); }
 .page-header h1 {
-  font-family: var(--font-display); font-size: clamp(1.45rem, 2vw, var(--fs-h1));
-  font-weight: var(--fw-black); color: var(--brown-dark); letter-spacing: var(--tracking-tight);
-  line-height: var(--lh-tight);
+  font-family: var(--font-display); font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-weight: 800; color: var(--brown-dark); letter-spacing: -0.03em;
 }
-/* Filet vert décoratif sous le titre pour ancrer la hiérarchie */
-.page-header h1::after {
-  content: ""; display: block; width: 48px; height: 3px;
-  background: var(--green-primary); border-radius: var(--radius-full);
-  margin-top: var(--space-3);
-}
-.page-header p { font-size: var(--fs-body); color: var(--text-muted); margin-top: var(--space-3);
-  line-height: var(--lh-normal); max-width: 70ch; }
+.page-header p { font-size: 0.875rem; color: var(--text-muted); margin-top: var(--space-1); }
 
-/* ── Cartes KPI ────────────────────────────────────────────── */
+/* ── KPI Cards ─────────────────────────────────────────────── */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
 .kpi-card {
-  position: relative; overflow: hidden;
   background: var(--beige-card); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); padding: var(--space-5);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
 }
-/* Filet vert qui se révèle en haut de la carte au survol (profondeur) */
-.kpi-card::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--green-primary), var(--green-muted));
-  transform: scaleX(0); transform-origin: left;
-  transition: transform var(--dur-slow) var(--ease-out);
-}
-/* Légère élévation au survol pour le ressenti de profondeur */
-.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #DCCFB8; }
-.kpi-card:hover::before { transform: scaleX(1); }
-.kpi-label { font-size: var(--fs-caption); font-weight: var(--fw-semibold); letter-spacing: var(--tracking-wide);
-  text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--space-2); line-height: var(--lh-snug); }
+.kpi-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--space-2); }
 .kpi-value { font-family: var(--font-display); font-size: clamp(1.4rem, 2.5vw, 2rem);
-  font-weight: var(--fw-black); color: var(--brown-dark); line-height: var(--lh-tight); letter-spacing: var(--tracking-tight); }
-.kpi-sub   { font-size: var(--fs-caption); color: var(--text-faint); margin-top: var(--space-2); line-height: var(--lh-snug); }
-/* Delta / variation : marron chaud par défaut */
-.kpi-delta { display: inline-flex; align-items: center; gap: var(--space-1);
-  font-size: 0.74rem; font-weight: var(--fw-bold); color: var(--brown-warm); margin-top: var(--space-1); }
-.kpi-delta.up   { color: var(--sem-good); }
-.kpi-delta.down { color: var(--sem-over); }
+  font-weight: 800; color: var(--brown-dark); line-height: 1; }
+.kpi-sub   { font-size: 0.72rem; color: var(--text-faint); margin-top: var(--space-1); }
 .kpi-accent { border-top: 3px solid var(--green-primary); }
-/* Sur une carte déjà accentuée, on évite de doubler le filet animé */
-.kpi-accent::before { display: none; }
 
-/* ── Cartes de section ─────────────────────────────────────── */
+/* ── Section cards ─────────────────────────────────────────── */
 .card {
   background: var(--beige-card); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); padding: var(--space-6);
   box-shadow: var(--shadow-sm); margin-bottom: var(--space-5);
-  transition: box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
 }
-.card:hover { box-shadow: var(--shadow-md); border-color: #DCCFB8; transform: translateY(-1px); }
 .card-title {
-  font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-bold);
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
   color: var(--brown-dark); margin-bottom: var(--space-4);
   display: flex; align-items: center; gap: var(--space-2);
-  letter-spacing: var(--tracking-normal); line-height: var(--lh-snug);
 }
 .card-title svg { color: var(--green-primary); }
 
-/* ── Liste Top 5 / Top 10 communes ─────────────────────────── */
+/* ── Top 10 commune list ────────────────────────────────────── */
 .commune-list { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
 .commune-item {
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
-  background: var(--beige-surface); font-size: var(--fs-label);
-  border: 1px solid transparent;
-  transition: background var(--dur-base) var(--ease-soft), border-color var(--dur-base) var(--ease-soft), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  background: var(--beige-surface); font-size: 0.82rem;
 }
-/* Survol : accent marron chaud discret + légère élévation */
-.commune-item:hover {
-  background: #FBF4E8; border-color: var(--beige-border);
-  transform: translateX(3px); box-shadow: var(--shadow-sm);
-}
-/* Focus clavier accessible si l'élément devient interactif */
-.commune-item:focus-visible {
-  outline: none; border-color: var(--green-primary);
-  box-shadow: var(--focus-ring);
-}
-.commune-rank { width: 24px; height: 24px; border-radius: 50%; background: var(--green-primary);
-  color: #fff; font-size: var(--fs-overline); font-weight: var(--fw-bold);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  box-shadow: 0 1px 2px rgba(61, 43, 31, 0.18);
-  transition: transform var(--dur-base) var(--ease-out); }
-.commune-item:hover .commune-rank { transform: scale(1.08); }
-/* Le podium (3 premiers) reçoit l'ambre puis le marron chaud */
-.commune-item:nth-child(1) .commune-rank { background: var(--sem-neutral); color: var(--brown-dark);
-  box-shadow: 0 2px 6px rgba(201, 162, 39, 0.45); }
-.commune-item:nth-child(2) .commune-rank { background: var(--green-muted); }
-.commune-item:nth-child(3) .commune-rank { background: var(--brown-warm); }
-.commune-name  { font-weight: var(--fw-semibold); color: var(--text-primary); flex: 1; line-height: var(--lh-snug); }
+.commune-rank { width: 22px; height: 22px; border-radius: 50%; background: var(--green-primary);
+  color: #fff; font-size: 0.65rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.commune-name  { font-weight: 600; color: var(--text-primary); flex: 1; }
 .commune-stats { text-align: right; }
-.commune-prix  { font-size: 0.75rem; font-weight: var(--fw-bold); color: var(--green-primary); }
-.commune-ventes{ font-size: var(--fs-overline); color: var(--text-faint); }
+.commune-prix  { font-size: 0.75rem; font-weight: 700; color: var(--green-primary); }
+.commune-ventes{ font-size: 0.68rem; color: var(--text-faint); }
 
-/* ── Dispositions multi-colonnes ───────────────────────────── */
+/* ── Two-col layout ────────────────────────────────────────── */
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
 .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-5); }
 
-/* ── Barre de filtres ──────────────────────────────────────── */
+/* ── Filter bar ─────────────────────────────────────────────── */
 .filter-section-title {
-  font-family: var(--font-display); font-size: var(--fs-label); font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: var(--space-3);
   padding-bottom: var(--space-2); border-bottom: 1px solid var(--beige-border);
 }
 
-/* ── Surcharges des widgets Streamlit ──────────────────────── */
+/* ── Streamlit widget overrides ─────────────────────────────── */
 div[data-testid="stTextInput"] input,
 div[data-testid="stNumberInput"] input,
 div[data-testid="stSelectbox"] select {
@@ -293,70 +168,9 @@ div[data-testid="stSelectbox"] select {
   border-radius: var(--radius-md) !important;
   font-family: var(--font-body) !important;
   color: var(--text-primary) !important;
-  transition: border-color 150ms ease, box-shadow 150ms ease !important;
-}
-/* Focus accessible sur les champs de saisie (anneau vert) */
-div[data-testid="stTextInput"] input:focus,
-div[data-testid="stNumberInput"] input:focus,
-div[data-testid="stSelectbox"] select:focus {
-  border-color: var(--green-primary) !important;
-  box-shadow: var(--focus-ring) !important;
-  outline: none !important;
 }
 div[data-testid="stSlider"] .rc-slider-track { background: var(--green-primary) !important; }
-div[data-testid="stSlider"] .rc-slider-rail { background: var(--beige-border) !important; }
-div[data-testid="stSlider"] .rc-slider-handle {
-  border-color: var(--green-primary) !important;
-  background: var(--beige-card) !important;
-  box-shadow: 0 0 0 2px rgba(58, 107, 63, 0.20) !important;
-  transition: box-shadow var(--dur-base) var(--ease-out) !important;
-}
-/* Survol / focus de la poignée du curseur (anneau vert plus marqué) */
-div[data-testid="stSlider"] .rc-slider-handle:hover,
-div[data-testid="stSlider"] .rc-slider-handle:focus-visible {
-  box-shadow: var(--focus-ring) !important; outline: none !important;
-}
-/* Étiquette de valeur du curseur (BaseWeb) harmonisée au vert */
-div[data-testid="stSlider"] div[data-baseweb="slider"] div[role="slider"] {
-  background: var(--green-primary) !important;
-}
-div[data-testid="stSlider"] [data-testid="stTickBarMin"],
-div[data-testid="stSlider"] [data-testid="stTickBarMax"] {
-  color: var(--text-faint) !important; font-size: var(--fs-caption) !important;
-}
-
-/* Étiquettes des widgets (labels au-dessus des champs) */
-div[data-testid="stWidgetLabel"] label,
-label[data-testid="stWidgetLabel"] {
-  color: var(--text-muted) !important;
-  font-family: var(--font-body) !important;
-  font-size: var(--fs-label) !important;
-  font-weight: var(--fw-semibold) !important;
-  letter-spacing: var(--tracking-wide) !important;
-}
-
-/* Selectbox & multiselect (BaseWeb) — alignés sur la charte beige */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
-  background: var(--beige-card) !important;
-  border: 1px solid var(--beige-border) !important;
-  border-radius: var(--radius-md) !important;
-  color: var(--text-primary) !important;
-  transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out) !important;
-}
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within,
-div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div:focus-within {
-  border-color: var(--green-primary) !important;
-  box-shadow: var(--focus-ring) !important;
-}
-/* Pastilles de sélection multiple en vert de marque */
-div[data-testid="stMultiSelect"] span[data-baseweb="tag"] {
-  background: var(--green-light) !important; color: var(--green-hover) !important;
-  border-radius: var(--radius-sm) !important;
-}
-
-/* Cases à cocher & boutons radio — accent vert natif */
-div[data-testid="stCheckbox"], div[data-testid="stRadio"] { accent-color: var(--green-primary); }
+div[data-testid="stSlider"] .rc-slider-handle { border-color: var(--green-primary) !important; }
 
 div[data-testid="stButton"] button {
   background: var(--green-primary) !important;
@@ -366,55 +180,11 @@ div[data-testid="stButton"] button {
   font-family: var(--font-body) !important;
   font-weight: 600 !important;
   padding: var(--space-3) var(--space-6) !important;
-  box-shadow: var(--shadow-sm) !important;
-  transition: background 180ms ease, box-shadow 180ms ease, transform 120ms ease !important;
+  transition: background 180ms !important;
 }
-div[data-testid="stButton"] button:hover {
-  background: var(--green-hover) !important;
-  box-shadow: var(--shadow-md) !important;
-  transform: translateY(-1px) !important;
-}
-div[data-testid="stButton"] button:active { transform: translateY(0) !important; }
-/* Focus clavier accessible sur les boutons */
-div[data-testid="stButton"] button:focus-visible {
-  outline: none !important;
-  box-shadow: var(--focus-ring) !important;
-}
+div[data-testid="stButton"] button:hover { background: var(--green-hover) !important; }
 
-/* ── Tableaux (dataframe & table Streamlit) ────────────────── */
-div[data-testid="stTable"] table,
-div[data-testid="stDataFrame"] {
-  border-radius: var(--radius-lg) !important;
-  overflow: hidden !important;
-  border: 1px solid var(--beige-border) !important;
-}
-div[data-testid="stTable"] thead th {
-  position: sticky; top: 0; z-index: 2;
-  background: var(--green-primary) !important;
-  color: #fff !important;
-  font-family: var(--font-body) !important;
-  font-weight: var(--fw-bold) !important;
-  font-size: 0.78rem !important;
-  letter-spacing: var(--tracking-wide) !important;
-  text-transform: uppercase !important;
-  border: none !important;
-  padding: var(--space-3) var(--space-4) !important;
-}
-div[data-testid="stTable"] tbody td {
-  color: var(--text-primary) !important;
-  font-size: var(--fs-label) !important;
-  line-height: var(--lh-snug) !important;
-  border-bottom: 1px solid var(--beige-border) !important;
-  padding: var(--space-3) var(--space-4) !important;
-  transition: background var(--dur-fast) var(--ease-soft) !important;
-}
-/* Lignes alternées sur surface beige pour la lisibilité (zébrage) */
-div[data-testid="stTable"] tbody tr:nth-child(even) td { background: var(--beige-surface) !important; }
-div[data-testid="stTable"] tbody tr:hover td { background: var(--green-light) !important; }
-/* Dernière ligne sans bordure pour un bas de tableau net */
-div[data-testid="stTable"] tbody tr:last-child td { border-bottom: none !important; }
-
-/* ── Liste de suggestions ──────────────────────────────────── */
+/* ── Suggestion dropdown ─────────────────────────────────────── */
 .suggestion-box {
   position: absolute; z-index: 999;
   background: var(--beige-card); border: 1px solid var(--beige-border);
@@ -422,215 +192,110 @@ div[data-testid="stTable"] tbody tr:last-child td { border-bottom: none !importa
   max-height: 160px; overflow-y: auto; width: 100%;
 }
 .suggestion-item {
-  padding: var(--space-2) var(--space-4); font-size: var(--fs-label); cursor: pointer;
-  color: var(--text-primary); line-height: var(--lh-snug);
-  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+  padding: var(--space-2) var(--space-4); font-size: 0.82rem; cursor: pointer;
+  color: var(--text-primary); transition: background 120ms;
 }
-.suggestion-item:hover { background: var(--green-light); color: var(--green-hover); }
-.suggestion-item:focus-visible {
-  outline: none; background: var(--green-light); color: var(--green-hover);
-  box-shadow: inset 0 0 0 2px var(--green-primary);
-}
+.suggestion-item:hover { background: var(--green-light); }
 
-/* ── Emplacement de carte (map) ────────────────────────────── */
+/* ── Map placeholder ─────────────────────────────────────────── */
 .map-placeholder {
-  background: var(--beige-surface); border: 1px dashed var(--beige-border);
+  background: var(--beige-surface); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); height: 420px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: var(--text-faint); font-size: var(--fs-body); gap: var(--space-3);
-  line-height: var(--lh-normal); text-align: center;
+  color: var(--text-faint); font-size: 0.875rem; gap: var(--space-3);
 }
-.map-placeholder svg { opacity: 0.40; color: var(--green-muted); }
+.map-placeholder svg { opacity: 0.35; }
 
-/* ── Badge DPE (échelle réglementaire française vert→rouge) ──
-   Couleurs des lettres conservées et reconnaissables ; contraste
-   du texte affiné pour la lisibilité (noir sur teintes claires). */
+/* ── DPE badge ────────────────────────────────────────────────── */
 .dpe-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border-radius: var(--radius-sm);
-  font-weight: var(--fw-black); font-size: 0.85rem; color: #fff;
-  box-shadow: 0 1px 2px rgba(61, 43, 31, 0.18);
-  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  font-weight: 800; font-size: 0.85rem; color: #fff;
 }
-.dpe-badge:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.dpe-A { background: #00984F; color: #fff; }
-.dpe-B { background: #4FB04A; color: #fff; }
-.dpe-C { background: #B7D44B; color: #2A2A00; }
-.dpe-D { background: #F4D000; color: #3A2E00; }
-.dpe-E { background: #F2A100; color: #3A2400; }
-.dpe-F { background: #EA6B1F; color: #fff; }
-.dpe-G { background: #D32C20; color: #fff; }
+.dpe-A { background: #00b050; } .dpe-B { background: #92d050; color: #1a1a1a; }
+.dpe-C { background: #ffff00; color: #1a1a1a; } .dpe-D { background: #ffbf00; }
+.dpe-E { background: #ff9900; } .dpe-F { background: #ff3300; } .dpe-G { background: #c00000; }
 
-/* ── Badge de zone de bruit ────────────────────────────────── */
+/* ── Noise zone badge ─────────────────────────────────────────── */
 .zone-badge {
   display: inline-flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-4); border-radius: var(--radius-full);
-  font-size: var(--fs-label); font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-normal); line-height: 1;
+  padding: var(--space-2) var(--space-4); border-radius: 9999px;
+  font-size: 0.8rem; font-weight: 600;
 }
-.zone-calme    { background: var(--green-light); color: var(--green-hover); }
-.zone-bruyante { background: #F7E6D6; color: var(--brown-warm); }
+.zone-calme    { background: var(--green-light); color: var(--green-primary); }
+.zone-bruyante { background: #fef2e4; color: #9a4c00; }
 
-/* ── Carte de station ──────────────────────────────────────── */
+/* ── Station card ─────────────────────────────────────────────── */
 .station-card {
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
   background: var(--beige-surface); margin-bottom: var(--space-2);
-  border: 1px solid transparent;
-  transition: background var(--dur-base) var(--ease-soft), border-color var(--dur-base) var(--ease-soft), transform var(--dur-fast) var(--ease-out);
 }
-.station-card:hover { background: var(--green-light); border-color: #D8E5D8; transform: translateX(2px); }
 .station-icon { color: var(--green-primary); flex-shrink: 0; }
-.station-name { font-size: var(--fs-label); font-weight: var(--fw-semibold); color: var(--text-primary); line-height: var(--lh-snug); }
-.station-dist { font-size: var(--fs-caption); color: var(--text-faint); }
+.station-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+.station-dist { font-size: 0.7rem; color: var(--text-faint); }
 
-/* ── Zone de graphique (scatter & corrélation) ─────────────── */
+/* ── Scatter & correlation ────────────────────────────────────── */
 .chart-area {
   background: var(--beige-card); border: 1px solid var(--beige-border);
   border-radius: var(--radius-lg); padding: var(--space-6);
   box-shadow: var(--shadow-sm);
 }
 
-/* ── Bannière d'information « données de démo » ────────────── */
+/* ── Demo data info banner ────────────────────────────────────── */
 .demo-banner {
-  background: linear-gradient(90deg, #FBF1DF 0%, #F8EAD2 100%);
-  border: 1px solid #E7CFA0;
-  border-left: 4px solid var(--brown-warm);
+  background: #fdf3e3; border: 1px solid #e8c987;
   border-radius: var(--radius-md); padding: var(--space-3) var(--space-5);
-  font-size: var(--fs-label); color: #6E4423; margin-bottom: var(--space-6);
-  line-height: var(--lh-normal);
-  display: flex; align-items: center; gap: var(--space-3);
-  box-shadow: var(--shadow-sm);
-}
-.demo-banner svg { color: var(--brown-warm); flex-shrink: 0; }
-
-/* ── Pastilles sémantiques (estimation de prix) ────────────── */
-.tag-good    { color: var(--sem-good); background: var(--green-light); }
-.tag-over    { color: var(--sem-over); background: #F8E2DF; }
-.tag-neutral { color: #7A6000;        background: #FBF2D2; }
-.tag-good, .tag-over, .tag-neutral {
-  display: inline-flex; align-items: center; gap: var(--space-1);
-  padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
-  font-size: 0.74rem; font-weight: var(--fw-bold); line-height: 1;
-  letter-spacing: var(--tracking-normal);
+  font-size: 0.78rem; color: #7a5200; margin-bottom: var(--space-6);
+  display: flex; align-items: center; gap: var(--space-2);
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
+/* ── Prix variation badge ─────────────────────────────────────── */
+.prix-variation {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 9999px;
+  font-size: 0.72rem; font-weight: 700; margin-top: var(--space-2);
+}
+.prix-variation-up   { background: #e8f5e9; color: #2D6A4F; }
+.prix-variation-down { background: #fdecea; color: #B00020; }
+.prix-variation-flat { background: var(--beige-surface); color: var(--text-muted); }
+
+/* ── Top communes bar list ───────────────────────────────────── */
+.commune-bar-list { display: flex; flex-direction: column; gap: 10px; }
+.commune-bar-item {
+  display: grid; grid-template-columns: 140px 1fr 90px;
+  grid-template-rows: auto auto; column-gap: 12px; align-items: center;
+}
+.commune-bar-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.commune-bar-wrap { background: var(--beige-surface); border-radius: 4px; height: 8px; }
+.commune-bar-fill { background: var(--green-primary); border-radius: 4px; height: 8px;
+  transition: width 400ms ease; }
+.commune-bar-prix { font-size: 0.78rem; font-weight: 700; color: var(--green-primary); text-align: right; }
+.commune-bar-sub  { grid-column: 1 / -1; font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; }
+
+/* ── Facility panels (gares, écoles, aéroport) ───────────────── */
+.facility-panel {
+  background: var(--beige-card); border: 1px solid var(--beige-border);
+  border-radius: var(--radius-md); padding: var(--space-4);
+  margin-top: var(--space-4); box-shadow: var(--shadow-sm);
+}
+.facility-panel-title {
+  font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+  color: var(--brown-dark); margin-bottom: var(--space-3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.facility-item {
+  font-size: 0.8rem; color: var(--text-primary);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--beige-surface);
+}
+.facility-item:last-child { border-bottom: none; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .kpi-grid   { grid-template-columns: repeat(2, 1fr); }
-  .two-col    { grid-template-columns: 1fr; }
-  .three-col  { grid-template-columns: 1fr; }
-}
-@media (max-width: 560px) {
-  .kpi-grid     { grid-template-columns: 1fr; }
-  .main-content { padding: var(--space-5) var(--space-4); }
-}
-
-/* ── Liens harmonisés à la charte (vert de marque) ─────────── */
-a, .stMarkdown a {
-  color: var(--green-primary); text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color var(--dur-base) var(--ease-soft), border-color var(--dur-base) var(--ease-soft);
-}
-a:hover, .stMarkdown a:hover {
-  color: var(--green-hover); border-bottom-color: var(--green-muted);
-}
-a:focus-visible, .stMarkdown a:focus-visible {
-  outline: none; border-radius: var(--radius-sm); box-shadow: var(--focus-ring);
-}
-
-/* ── Filets / séparateurs (hr & divider Streamlit) ─────────── */
-hr, div[data-testid="stDivider"] hr {
-  border: none !important; height: 1px !important;
-  background: var(--beige-border) !important; margin: var(--space-5) 0 !important;
-}
-
-/* ── Anneau de focus global (filet de sécurité a11y) ───────────
-   S'applique à tout élément interactif non couvert ci-dessus afin
-   qu'aucune cible clavier ne reste sans indicateur visible. */
-a:focus-visible,
-button:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[role="button"]:focus-visible,
-[tabindex]:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-sm);
-}
-
-/* ── Barres de défilement harmonisées (beige · vert) ───────── */
-* { scrollbar-width: thin; scrollbar-color: var(--green-muted) var(--beige-surface); }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--beige-surface); border-radius: var(--radius-full); }
-::-webkit-scrollbar-thumb {
-  background: var(--brown-light); border-radius: var(--radius-full);
-  border: 2px solid var(--beige-surface);
-  transition: background var(--dur-base) var(--ease-soft);
-}
-::-webkit-scrollbar-thumb:hover { background: var(--green-muted); }
-
-/* ── États vides / informatifs ─────────────────────────────── */
-.empty-state {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: var(--space-3); text-align: center;
-  padding: var(--space-10) var(--space-6);
-  background: var(--beige-surface); border: 1px dashed var(--beige-border);
-  border-radius: var(--radius-lg); color: var(--text-muted);
-}
-.empty-state svg { color: var(--green-muted); opacity: 0.55; }
-.empty-state-title { font-family: var(--font-display); font-size: var(--fs-h4);
-  font-weight: var(--fw-bold); color: var(--brown-dark); line-height: var(--lh-snug); }
-.empty-state-text  { font-size: var(--fs-label); color: var(--text-faint);
-  line-height: var(--lh-normal); max-width: 42ch; }
-
-/* Surcharge des blocs d'alerte natifs Streamlit (info/success/warning/error)
-   pour rester dans la palette beige · vert · marron. */
-div[data-testid="stAlert"] {
-  border-radius: var(--radius-md) !important;
-  border: 1px solid var(--beige-border) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-/* ── Classes utilitaires (rythme & typographie) ────────────── */
-.u-overline {
-  font-size: var(--fs-overline); font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-wider); text-transform: uppercase;
-  color: var(--text-muted);
-}
-.u-caption    { font-size: var(--fs-caption); color: var(--text-faint); line-height: var(--lh-snug); }
-.u-muted      { color: var(--text-muted); }
-.u-faint      { color: var(--text-faint); }
-.u-bold       { font-weight: var(--fw-bold); }
-.u-center     { text-align: center; }
-.u-mt-2 { margin-top: var(--space-2); }   .u-mt-4 { margin-top: var(--space-4); }
-.u-mt-6 { margin-top: var(--space-6); }   .u-mb-2 { margin-bottom: var(--space-2); }
-.u-mb-4 { margin-bottom: var(--space-4); } .u-mb-6 { margin-bottom: var(--space-6); }
-.u-elevate-md { box-shadow: var(--shadow-md); }
-.u-elevate-lg { box-shadow: var(--shadow-lg); }
-.u-divider {
-  height: 1px; background: var(--beige-border);
-  border: none; margin: var(--space-5) 0;
-}
-
-/* ── Mouvement réduit : respect de prefers-reduced-motion ──────
-   On neutralise transitions, animations et effets de translation
-   pour les utilisateurs sensibles au mouvement (accessibilité). */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    transition: none !important;
-    animation: none !important;
-    scroll-behavior: auto !important;
-  }
-  .kpi-card:hover,
-  .card:hover,
-  .commune-item:hover,
-  .station-card:hover,
-  .nav-link:hover,
-  .nav-link:active,
-  .dpe-badge:hover,
-  div[data-testid="stButton"] button:hover {
-    transform: none !important;
-  }
-  .kpi-card::before { transform: scaleX(1); }
+  .kpi-grid        { grid-template-columns: repeat(2, 1fr); }
+  .two-col         { grid-template-columns: 1fr; }
+  .three-col       { grid-template-columns: 1fr; }
+  .commune-bar-item { grid-template-columns: 100px 1fr 80px; }
 }

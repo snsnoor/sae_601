@@ -149,6 +149,8 @@ print("Table 'dvf' créée et nettoyée.")
 
 # ------------------- 3. Table 'dim_gares' -------------------
 print("\n--- 3. Téléchargement des données des gares SNCF ---")
+# ------------------- 3. Table 'dim_gares' -------------------
+print("\n--- 3. Téléchargement des données des gares SNCF ---")
 base_url = "https://data.sncf.com/api/explore/v2.1/catalog/datasets/liste-des-gares/records"
 limit = 100
 offset = 0
@@ -330,7 +332,18 @@ else:
     select_clause = ", ".join([f'"{c}"' for c in cols_ok])
 
     con.execute(f"CREATE OR REPLACE TABLE dpe_raw AS SELECT {select_clause} FROM read_csv('{DPE_FILE}', auto_detect=TRUE, all_varchar=TRUE, ignore_errors=True)")
+    cols_header = con.execute(f"SELECT column_name FROM (DESCRIBE SELECT * FROM read_csv('{DPE_FILE}', auto_detect=TRUE, all_varchar=TRUE, sample_size=1))").fetchdf()["column_name"].tolist()
+    cols_ok = [c for c in COLS_TO_KEEP if c in cols_header]
+    select_clause = ", ".join([f'"{c}"' for c in cols_ok])
 
+    con.execute(f"CREATE OR REPLACE TABLE dpe_raw AS SELECT {select_clause} FROM read_csv('{DPE_FILE}', auto_detect=TRUE, all_varchar=TRUE, ignore_errors=True)")
+
+    NUMERIC_IMPUTE = [c for c in ["conso_5_usages_ep", "conso_5_usages_par_m2_ep", "conso_5 usages_ef", "conso_5 usages_par_m2_ef", "emission_ges_5_usages", "emission_ges_5_usages par_m2", "cout_total_5_usages", "cout_chauffage", "cout_ecs", "cout_refroidissement", "cout_eclairage", "cout_auxiliaires", "surface_habitable_logement", "nombre_niveau_logement", "conso_chauffage_ef"] if c in cols_ok]
+    
+    medianes = {}
+    for col in NUMERIC_IMPUTE:
+        val = con.execute(f'SELECT MEDIAN(TRY_CAST(REPLACE(REPLACE("{col}", \',\', \'.\'), \' \', \'\') AS DOUBLE)) FROM dpe_raw WHERE "{col}" IS NOT NULL AND TRIM("{col}") != \'\'').fetchone()[0]
+        medianes[col] = val if val is not None else 0
     NUMERIC_IMPUTE = [c for c in ["conso_5_usages_ep", "conso_5_usages_par_m2_ep", "conso_5 usages_ef", "conso_5 usages_par_m2_ef", "emission_ges_5_usages", "emission_ges_5_usages par_m2", "cout_total_5_usages", "cout_chauffage", "cout_ecs", "cout_refroidissement", "cout_eclairage", "cout_auxiliaires", "surface_habitable_logement", "nombre_niveau_logement", "conso_chauffage_ef"] if c in cols_ok]
     
     medianes = {}
@@ -339,7 +352,37 @@ else:
         medianes[col] = val if val is not None else 0
 
     median_expr = ",\n        ".join([f'COALESCE(TRY_CAST(REPLACE(REPLACE("{col}", \',\', \'.\'), \' \', \'\') AS DOUBLE), {medianes[col]}) AS "{col}"' for col in NUMERIC_IMPUTE])
+    median_expr = ",\n        ".join([f'COALESCE(TRY_CAST(REPLACE(REPLACE("{col}", \',\', \'.\'), \' \', \'\') AS DOUBLE), {medianes[col]}) AS "{col}"' for col in NUMERIC_IMPUTE])
 
+    con.execute(f"""
+        CREATE OR REPLACE TABLE dpe_imputed AS
+        SELECT
+            numero_dpe, date_etablissement_dpe, date_fin_validite_dpe, date_derniere_modification_dpe,
+            COALESCE(NULLIF(TRIM(code_insee_ban),       ''), 'NR') AS code_insee_ban,
+            COALESCE(NULLIF(TRIM(code_departement_ban), ''), 'NR') AS code_departement_ban,
+            COALESCE(NULLIF(TRIM(code_region_ban),      ''), 'NR') AS code_region_ban,
+            COALESCE(NULLIF(TRIM(nom_commune_ban),  ''), NULLIF(TRIM(nom_commune_brut),  ''), 'NR') AS nom_commune_ban,
+            COALESCE(NULLIF(TRIM(code_postal_ban),  ''), NULLIF(TRIM(code_postal_brut),  ''), 'NR') AS code_postal_ban,
+            COALESCE(TRY_CAST(coordonnee_cartographique_x_ban AS DOUBLE), -999) AS coordonnee_cartographique_x_ban,
+            COALESCE(TRY_CAST(coordonnee_cartographique_y_ban AS DOUBLE), -999) AS coordonnee_cartographique_y_ban,
+            COALESCE(TRY_CAST(score_ban AS DOUBLE), 0.0) AS score_ban,
+            COALESCE(adresse_brut, '') AS adresse_brut,
+            COALESCE(nom_commune_brut, '') AS nom_commune_brut,
+            code_postal_brut,
+            UPPER(TRIM(etiquette_dpe)) AS etiquette_dpe,
+            UPPER(TRIM(etiquette_ges)) AS etiquette_ges,
+            {median_expr},
+            COALESCE(NULLIF(TRIM(zone_climatique),  ''), 'NR') AS zone_climatique,
+            COALESCE(NULLIF(TRIM(classe_altitude),  ''), 'NR') AS classe_altitude,
+            COALESCE(NULLIF(TRIM(qualite_isolation_murs), ''), 'NR') AS qualite_isolation_murs,
+            COALESCE(NULLIF(TRIM(type_generateur_chauffage_principal), ''), 'NR') AS type_generateur_chauffage_principal,
+            COALESCE(NULLIF(TRIM(typologie_logement), ''), 'NR') AS typologie_logement,
+            periode_construction, type_batiment, type_energie_principale_chauffage,
+            qualite_isolation_enveloppe, qualite_isolation_menuiseries, ubat_w_par_m2_k,
+            COALESCE(TRY_CAST(indicateur_confort_ete AS INTEGER), 0) AS indicateur_confort_ete,
+            COALESCE(NULLIF(TRIM(isolation_toiture), ''), 'Inconnu') AS isolation_toiture
+        FROM dpe_raw
+    """)
     con.execute(f"""
         CREATE OR REPLACE TABLE dpe_imputed AS
         SELECT
@@ -1149,4 +1192,5 @@ else:
 print("=======================================================================")
 
 con.close()
+print("\nProcessus terminé avec succès.")
 print("\nProcessus terminé avec succès.")
