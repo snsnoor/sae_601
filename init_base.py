@@ -1,4 +1,5 @@
 import os
+import tempfile
 import duckdb
 import requests
 import pandas as pd
@@ -17,7 +18,7 @@ con.execute("LOAD spatial;")
 
 # Nettoyage des anciennes tables pour éviter les conflits de schéma
 tables_to_drop = [
-    "dvf", "adresses", "dim_gares", "dim_iris", "dim_adresses", "fact_dvf", 
+    "dvf", "adresses", "dim_gares", "dim_ecoles", "dim_iris", "dim_adresses", "fact_dvf", 
     "dpe_final", "iris_geoms_temp", "adresses_utiles_temp"
 ]
 for t in tables_to_drop:
@@ -36,7 +37,7 @@ print("\n--- 2. Chargement et nettoyage des données DVF ---")
 con.execute("""
     CREATE OR REPLACE TABLE dvf AS
     SELECT
-        date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain
+        date_mutation, valeur_fonciere, surface_reelle_bati, surface_terrain,
         adresse_numero, adresse_suffixe, adresse_code_voie, adresse_nom_voie,
         nombre_pieces_principales, type_local, nature_mutation,
         longitude, latitude, code_commune, code_postal,
@@ -99,8 +100,85 @@ con.execute("""
 """)
 print(f"Table 'dim_gares' créée.")
 
-# ------------------- 4. Table 'dim_iris' (Format de tes colonnes réelles) -------------------
-print("\n--- 4. Téléchargement et structuration des zones IRIS ---")
+# ------------------- 4. Table 'dim_ecoles' (Ton code sécurisé & corrigé) -------------------
+print("\n--- 4. Téléchargement et structuration de dim_ecoles via API data.gouv ---")
+url_ecoles = "https://www.data.gouv.fr/api/1/datasets/r/000f281d-81ec-4f57-be64-e3dbae5ef9ff"
+try:
+    response = requests.get(url_ecoles)
+    response.raise_for_status()
+    data_json = response.json()
+
+    with tempfile.NamedTemporaryFile(suffix=".geojson", delete=False) as f:
+        f.write(response.content)
+        temp_path = f.name
+
+    gdf_ecoles = gpd.read_file(temp_path)
+
+    if isinstance(data_json, dict) and 'features' in data_json:
+        df_ecole_raw = pd.json_normalize(data_json['features'])
+        rename_dict = {}
+        for col in df_ecole_raw.columns:
+            if col.endswith('nom_etablissement'): rename_dict[col] = 'nom_etablissement'
+            elif col.endswith('nom_commune'): rename_dict[col] = 'nom_commune'
+            elif col.endswith('longitude'): rename_dict[col] = 'longitude'
+            elif col.endswith('latitude'): rename_dict[col] = 'latitude'
+        df_ecole_raw = df_ecole_raw.rename(columns=rename_dict)
+        
+        if 'geometry.coordinates' in df_ecole_raw.columns and 'longitude' not in df_ecole_raw.columns:
+            df_ecole_raw['longitude'] = df_ecole_raw['geometry.coordinates'].apply(lambda x: x[0] if isinstance(x, list) and len(x) > 0 else None)
+            df_ecole_raw['latitude'] = df_ecole_raw['geometry.coordinates'].apply(lambda x: x[1] if isinstance(x, list) and len(x) > 1 else None)
+    elif isinstance(data_json, dict):
+        df_ecole_raw = pd.DataFrame.from_dict({k: pd.Series(v) for k, v in data_json.items()})
+    else:
+        df_ecole_raw = pd.DataFrame(data_json)
+        
+    if gdf_ecoles.crs is None:
+        gdf_ecoles = gdf_ecoles.set_crs("EPSG:3857")
+    gdf_ecoles = gdf_ecoles.to_crs("EPSG:4326")
+
+    gdf_ecoles["longitude"] = gdf_ecoles.geometry.x
+    gdf_ecoles["latitude"] = gdf_ecoles.geometry.y
+
+    if 'nom_etablissement' not in gdf_ecoles.columns and 'name' in gdf_ecoles.columns:
+        gdf_ecoles = gdf_ecoles.rename(columns={'name': 'nom_etablissement'})
+    if 'nom_etablissement' not in gdf_ecoles.columns and 'l_etablissement' in gdf_ecoles.columns:
+        gdf_ecoles = gdf_ecoles.rename(columns={'l_etablissement': 'nom_etablissement'})
+
+    cols = df_ecole_raw.columns.tolist()
+    if 'nom_etablissement' not in cols: df_ecole_raw['nom_etablissement'] = 'Inconnu'
+    if 'nom_commune' not in cols: df_ecole_raw['nom_commune'] = 'Inconnu'
+    if 'longitude' not in cols: df_ecole_raw['longitude'] = None
+    if 'latitude' not in cols: df_ecole_raw['latitude'] = None
+
+    con.register('df_ecole_temp', gdf_ecoles[['nom_etablissement', 'longitude', 'latitude']])
+    
+    # Execution SQL nettoyée (Plus de doublons de requêtes ou de colonnes manquantes)
+    con.execute("""
+        CREATE OR REPLACE TABLE dim_ecoles AS 
+        SELECT 
+            ROW_NUMBER() OVER () AS id_ecole,
+            nom_etablissement AS nom_ecole,
+            TRY_CAST(REPLACE(CAST(longitude AS VARCHAR), ',', '.') AS DOUBLE) AS longitude,
+            TRY_CAST(REPLACE(CAST(latitude AS VARCHAR), ',', '.') AS DOUBLE) AS latitude,
+            ST_X(ST_Transform(ST_Point(longitude, latitude), 'EPSG:4326', 'EPSG:2154')) AS x_2154,
+            ST_Y(ST_Transform(ST_Point(longitude, latitude), 'EPSG:4326', 'EPSG:2154')) AS y_2154,
+            ST_Transform(ST_Point(longitude, latitude), 'EPSG:4326', 'EPSG:2154') AS geom_2154
+        FROM df_ecole_temp 
+        WHERE longitude IS NOT NULL AND latitude IS NOT NULL
+    """)
+    print(f"-> Table 'dim_ecoles' créée avec {con.execute('SELECT COUNT(*) FROM dim_ecoles').fetchone()[0]:,} établissements.")
+
+    try:
+        os.unlink(temp_path)
+    except:
+        pass
+
+except Exception as e:
+    print(f"⚠️ Erreur lors de la récupération de l'API écoles : {e}. Table vide créée en secours.")
+    con.execute("CREATE OR REPLACE TABLE dim_ecoles (id_ecole INT, nom_ecole VARCHAR, longitude DOUBLE, latitude DOUBLE, x_2154 DOUBLE, y_2154 DOUBLE, geom_2154 GEOMETRY)")
+
+# ------------------- 5. Table 'dim_iris' -------------------
+print("\n--- 5. Téléchargement et structuration des zones IRIS ---")
 url = "https://www.data.gouv.fr/api/1/datasets/r/04e47e6e-0e91-44cb-a165-2faafdc4fb86"
 
 response = requests.get(url)
@@ -119,13 +197,11 @@ for feature in geojson_data.get('features', []):
 gdf = gpd.GeoDataFrame.from_features(features_valides)
 gdf.set_crs("EPSG:4326", inplace=True)
 
-# Sauvegarde essentielle de la géométrie au format texte WKT pour DuckDB
 gdf['geom_wkt'] = gdf['geometry'].apply(lambda x: x.wkt if x else None)
 df_iris_temp = pd.DataFrame(gdf.drop(columns='geometry'))
 
 con.register('df_iris_temp', df_iris_temp)
 
-# Création avec typage strict basé sur ton schéma
 con.execute("""
     CREATE OR REPLACE TABLE dim_iris AS 
     SELECT 
@@ -145,8 +221,8 @@ con.execute("""
 """)
 print("Table 'dim_iris' créée.")
 
-# ------------------- 5. Table 'dpe_final' -------------------
-print("\n--- 5. Chargement et nettoyage des données DPE ---")
+# ------------------- 6. Table 'dpe_final' -------------------
+print("\n--- 6. Chargement et nettoyage des données DPE ---")
 DPE_FILE = r"data\dpe.csv"
 
 if not os.path.exists(DPE_FILE):
@@ -220,8 +296,8 @@ else:
     con.execute("ALTER TABLE dpe_final DROP COLUMN _rn; DROP TABLE dpe_raw; DROP TABLE dpe_imputed;")
     print("Table 'dpe_final' créée.")
 
-# ------------------- 6. Modèle en Étoile (Calculs Spatiaux Corrigés) -------------------
-print("\n--- 6. RESTRUCTURATION EN MODÈLE EN ÉTOILE (POINT-IN-POLYGON) ---")
+# ------------------- 7. Modèle en Étoile (Calculs Spatiaux Corrigés) -------------------
+print("\n--- 7. RESTRUCTURATION EN MODÈLE EN ÉTOILE (POINT-IN-POLYGON) ---")
 
 print("Étape 1 : Indexation des adresses uniques de DVF...")
 con.execute("""
@@ -240,7 +316,7 @@ print(f"Nb lignes dans dvf : {con.execute('SELECT COUNT(*) FROM dvf').fetchone()
 
 
 
-print("Étape 2 : Pré-filtrage par Bounding Box des géométries IRIS (Optimisation vitesse)...")
+print("Étape 2 : Pré-filtrage par Bounding Box des géométries IRIS ")
 con.execute("""
     CREATE OR REPLACE TEMP TABLE iris_geoms_temp AS
     SELECT
@@ -254,7 +330,7 @@ con.execute("""
     WHERE geom_wkt IS NOT NULL;
 """)
 
-print("Étape 3 : Génération de dim_adresses (LEFT JOIN pour garder toutes les adresses)...")
+print("Étape 3 : Génération de dim_adresses (Calcul gares, écoles, et polygones IRIS)...")
 con.execute("""
     CREATE OR REPLACE TABLE dim_adresses AS
     WITH gares_calc AS (
@@ -268,6 +344,16 @@ con.execute("""
                               AND g.y_2154 BETWEEN adr.y_2154 - 50000 AND adr.y_2154 + 50000
         QUALIFY ROW_NUMBER() OVER(PARTITION BY adr.numero, adr.nom_voie, adr.code_postal ORDER BY distance_gare_metres ASC) = 1
     ),
+    ecoles_calc AS (
+        SELECT 
+            adr.numero, adr.nom_voie, adr.code_postal,
+            e.nom_ecole AS nom_ecole_proche,
+            ST_Distance(adr.geom_2154, e.geom_2154) AS distance_ecole_metres
+        FROM adresses_utiles_temp adr
+        INNER JOIN dim_ecoles e ON e.x_2154 BETWEEN adr.x_2154 - 10000 AND adr.x_2154 + 10000
+                               AND e.y_2154 BETWEEN adr.y_2154 - 10000 AND adr.y_2154 + 10000
+        QUALIFY ROW_NUMBER() OVER(PARTITION BY adr.numero, adr.nom_voie, adr.code_postal ORDER BY distance_ecole_metres ASC) = 1
+    ),
     iris_calc AS (
         SELECT 
             adr.numero, adr.nom_voie, adr.code_postal,
@@ -275,7 +361,6 @@ con.execute("""
             i.CODE_OACI AS code_oaci_iris,
             i.NOM AS nom_iris
         FROM adresses_utiles_temp adr
-        -- Le LEFT JOIN préserve l'adresse même si elle n'est pas dans un polygone aéroportuaire
         LEFT JOIN iris_geoms_temp i 
             ON adr.lon BETWEEN i.lon_min AND i.lon_max
            AND adr.lat BETWEEN i.lat_min AND i.lat_max
@@ -286,9 +371,11 @@ con.execute("""
         ROW_NUMBER() OVER () AS id_adresse,
         adr.numero, adr.nom_voie, adr.code_postal, adr.nom_commune, adr.lon, adr.lat,
         gc.nom_gare_proche, gc.distance_gare_metres,
+        ec.nom_ecole_proche, ec.distance_ecole_metres,
         ic.id_iris, ic.code_oaci_iris, ic.nom_iris
     FROM adresses_utiles_temp adr
     LEFT JOIN gares_calc gc ON adr.numero = gc.numero AND adr.nom_voie = gc.nom_voie AND adr.code_postal = gc.code_postal
+    LEFT JOIN ecoles_calc ec ON adr.numero = ec.numero AND adr.nom_voie = ec.nom_voie AND adr.code_postal = ec.code_postal
     LEFT JOIN iris_calc ic ON adr.numero = ic.numero AND adr.nom_voie = ic.nom_voie AND adr.code_postal = ic.code_postal;
 """)
 
@@ -310,6 +397,7 @@ con.execute("""
 # Nettoyage final des index géométriques lourds et intermédiaires pour libérer de l'espace
 con.execute("DROP TABLE IF EXISTS dvf; DROP TABLE IF EXISTS adresses_utiles_temp; DROP TABLE IF EXISTS iris_geoms_temp;")
 con.execute("ALTER TABLE dim_gares DROP COLUMN geom_2154; ALTER TABLE dim_gares DROP COLUMN x_2154; ALTER TABLE dim_gares DROP COLUMN y_2154;")
+con.execute("ALTER TABLE dim_ecoles DROP COLUMN geom_2154; ALTER TABLE dim_ecoles DROP COLUMN x_2154; ALTER TABLE dim_ecoles DROP COLUMN y_2154;")
 
 # ------------------- Fin du script -------------------
 
