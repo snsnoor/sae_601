@@ -411,7 +411,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
         <div class="tech-badge"><span class="dot" style="background:#139C5A"></span>GeoPandas</div>
         <div class="tech-badge"><span class="dot" style="background:#2A6496"></span>Shapely</div>
         <div class="tech-badge"><span class="dot" style="background:#C9A227"></span>OpenPyXL</div>
-        <div class="tech-badge"><span class="dot" style="background:#3D2B1F"></span>Scikit-learn</div>
       </div>
       <div class="slide-body grid-3" style="margin:0;padding:0;">
         <div class="card">
@@ -422,14 +421,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
         <div class="card">
           <div class="card-icon">🌐</div>
           <div class="card-title">Streamlit — interface locale</div>
-          <div class="card-body">Pas de framework front séparé. Streamlit expose un serveur local (<code>localhost:8501</code>). CSS injecté pour une charte graphique totalement personnalisée.</div>
         </div>
         <div class="card">
           <div class="card-icon">▶️</div>
           <div class="card-title">Déploiement en une commande</div>
           <div class="card-body">
             <code style="background:var(--beige-surface);padding:2px 6px;border-radius:4px;font-size:.85rem;">python run.py --departements 53 --annees 2024</code><br><br>
-            Enchaîne tout automatiquement : sélection → téléchargement → ETL → dashboard. Anaconda suffit, pas de venv nécessaire.
           </div>
         </div>
       </div>
@@ -442,7 +439,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
     <div class="slide-header">
       <div class="section-badge">⚙️ Architecture</div>
       <div class="slide-title">Pipeline de données</div>
-      <div class="slide-subtitle">run.py orchestre les quatre étapes séquentielles — du choix des données au dashboard.</div>
     </div>
     <div class="slide-body" style="flex-direction:column;gap:16px;">
 
@@ -504,47 +500,26 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
     <div class="slide-num">04 / 09</div>
   </div>
 
-  <!-- ══ 5 — SOURCES ════════════════════════════════════════════ -->
-  <div class="slide" data-slide="4">
-    <div class="slide-header">
-      <div class="section-badge">📡 Données</div>
-      <div class="slide-title">Sources de données</div>
-      <div class="slide-subtitle">8 sources open data — certaines interrogeables en temps réel via API, d'autres téléchargées en fichiers (d'où <code>download_data.py</code>).</div>
-    </div>
-    <div class="slide-body" style="flex-direction:column;gap:8px;">
-      <div class="source-row"><span class="tag tag-dl">CSV.gz</span><span class="source-name">geo-DVF (data.gouv.fr)</span><span class="source-desc">Transactions immobilières — 1 fichier par département × année. Coordonnées incluses.</span></div>
-      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">DPE ADEME (data.ademe.fr)</span><span class="source-desc">Diagnostics de performance énergétique — paginée, filtrée par département et plage d'années.</span></div>
-      <div class="source-row"><span class="tag tag-dl">CSV</span><span class="source-name">INSEE FiLoSoFi (data.gouv.fr)</span><span class="source-desc">Revenu médian par commune — millésime le plus récent disponible.</span></div>
-      <div class="source-row"><span class="tag tag-dl">XLSX</span><span class="source-name">INSEE Recensement (insee.fr)</span><span class="source-desc">Population communale — 4 millésimes (2020-2023) pour la dimension temporelle.</span></div>
-      <div class="source-row"><span class="tag tag-api">API JSON</span><span class="source-name">SNCF OpenData</span><span class="source-desc">Localisation des gares — coordonnées + libellé.</span></div>
-      <div class="source-row"><span class="tag tag-api">Shapefile</span><span class="source-name">Éducation nationale (data.education.gouv.fr)</span><span class="source-desc">Établissements scolaires géolocalisés — archive ZIP multi-fichiers (.shp/.dbf/.prj).</span></div>
-      <div class="source-row"><span class="tag tag-geo">GeoJSON</span><span class="source-name">geo.api.gouv.fr</span><span class="source-desc">Polygones communaux (contours) — pour la carte choroplèthe. Téléchargé par département.</span></div>
-      <div class="source-row"><span class="tag tag-dl">CSV.gz</span><span class="source-name">BAN (adresse.data.gouv.fr)</span><span class="source-desc">Base Adresse Nationale — géocodage de secours pour les ventes DVF sans coordonnées GPS.</span></div>
-    </div>
-    <div class="slide-num">05 / 09</div>
-  </div>
-
   <!-- ══ 6 — PROBLÈMES ══════════════════════════════════════════ -->
-  <div class="slide" data-slide="5">
-    <div class="slide-header">
-      <div class="section-badge">🐛 Obstacles</div>
-      <div class="slide-title">Problèmes rencontrés</div>
-      <div class="slide-subtitle">Les défis techniques les plus marquants du projet.</div>
-    </div>
-    <div class="slide-body grid-2">
-      <ul class="bullet-list">
-        <li><strong>Chargement de données très lent</strong> — Les fichiers DVF font plusieurs centaines de Mo par département. La pagination de l'API DPE ADEME (milliers de pages) ajoute plusieurs minutes. Résolu en parallélisant et en ajoutant des indicateurs de progression.</li>
-        <li><strong>Difficultés à récupérer les données</strong> — Certaines APIs renvoient des redirections 302 silencieuses ou des pages HTML en cas d'erreur 404 (data.gouv.fr pour un département inexistant). Résolu par validation post-téléchargement : magic bytes gzip + détection de contenu HTML.</li>
-        <li><strong>Valeurs manquantes incompatibles</strong> — <code>pd.Series(pd.NA, dtype="float64")</code> lève une TypeError avec les backends NumPy de Pandas. Après réflexion, remplacé par <code>np.nan</code> pour garantir la compatibilité.</li>
-      </ul>
-      <ul class="bullet-list">
-        <li><strong>Perte de données aux jointures</strong> — Les jointures spatiales DPE × DVF par adresse (normalisation des voies) et la jointure géographique sans coordonnées GPS faisaient chuter le nombre de lignes exploitables. Résolu avec la BAN en géocodage de secours et une macro SQL de normalisation d'adresse.</li>
-        <li><strong>Problèmes avec les polygones communaux</strong> — Les contours GeoJSON n'étaient téléchargés qu'une seule fois. Ajouter de nouveaux départements ne mettait pas à jour le fichier. Résolu en régénérant systématiquement le GeoJSON à chaque exécution pour le périmètre courant.</li>
-        <li><strong>Colonnes Shapefile tronquées</strong> — Le format DBF tronque les noms de colonnes à 10 caractères. <code>'appellation_officielle'</code> devenait <code>'appellation'</code>. Résolu par une détection multi-noms au moment de la lecture.</li>
-      </ul>
-    </div>
-    <div class="slide-num">06 / 09</div>
+<div class="slide" data-slide="5">
+  <div class="slide-header">
+    <div class="section-badge">🐛 Obstacles</div>
+    <div class="slide-title">Problèmes rencontrés</div>
+    <div class="slide-subtitle">Les défis techniques les plus marquants du projet.</div>
   </div>
+  <div class="slide-body grid-2">
+    <ul class="bullet-list">
+      <li><strong>Chargement de données très lent</strong> — Le traitement des fichiers DVF volumineux et des milliers de pages de l'API DPE.</li>
+      <li><strong>Difficultés à récupérer les données</strong> — Les fausses réponses des APIs (redirections et erreurs masquées en HTML) ont été résolues par une validation stricte du format des fichiers après téléchargement.</li>
+      <li><strong>Valeurs manquantes incompatibles</strong> — <code>pd.NA</code> avec les backends NumPy de Pandas ont été corrigés en basculant sur le format standard <code>np.nan</code>.</li>
+    </ul>
+    <ul class="bullet-list">
+      <li><strong>Perte de données aux jointures</strong> — La baisse du nombre de lignes lors des jointures d'adresses a été résolue en utilisant le géocodage de secours de la BAN et une normalisation SQL.</li>
+      <li><strong>Problèmes avec les polygones communaux</strong> — Le manque de mise à jour des contours GeoJSON lors de l'ajout de départements a été réglé en régénérant systématiquement le fichier à chaque exécution.</li>
+    </ul>
+  </div>
+  <div class="slide-num">06 / 09</div>
+</div>x
 
   <!-- ══ 7 — FIERS ══════════════════════════════════════════════ -->
   <div class="slide" data-slide="6">
@@ -559,20 +534,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
         <div>
           <div class="proud-title">Pipeline 100 % automatisé</div>
           <div class="proud-body">Une seule commande <code>python run.py</code> lance le téléchargement de toutes les sources (DVF, DPE, INSEE, BAN, gares, écoles, communes), construit la base et ouvre le dashboard.</div>
-        </div>
-      </div>
-      <div class="proud-item">
-        <div class="proud-icon">⚖️</div>
-        <div>
-          <div class="proud-title">Score composite adaptatif</div>
-          <div class="proud-body">La pondération s'ajuste automatiquement si un facteur est absent (DPE non disponible, PEB non couvert, revenu manquant). Les facteurs restants absorbent le poids — le score reste comparable entre communes.</div>
-        </div>
-      </div>
-      <div class="proud-item">
-        <div class="proud-icon">🎨</div>
-        <div>
-          <div class="proud-title">Charte graphique cohérente</div>
-          <div class="proud-body">CSS variables partagées entre Streamlit et Plotly. Une seule modification du token <code>--green-primary</code> propage la couleur sur tout le dashboard — aucune duplication.</div>
         </div>
       </div>
       <div class="proud-item">
@@ -607,7 +568,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1008; }
       <div class="insight-card">
         <div class="insight-num">−8%</div>
         <div class="insight-title">Décote PEB aéroportuaire</div>
-        <div class="insight-body">Les communes en zone de bruit aéroportuaire (plan PEB zones A-D) affichent un prix médian inférieur de 5 à 15 % par rapport aux communes comparables hors zone. La page "Analyses" du dashboard présente cette décote par zone et par aéroport.</div>
+        <div class="insight-body">Les communes en zone de bruit aéroportuaire affichent un prix médian inférieur de 5 à 15 % par rapport aux communes comparables hors zone.</div>
       </div>
     </div>
     <div class="slide-num">08 / 09</div>
