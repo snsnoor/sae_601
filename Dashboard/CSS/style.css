@@ -2,7 +2,6 @@
    Art direction: Dashboard immobilier France
    Palette: beige chaud + marron + vert forêt
    Typography: Cabinet Grotesk (display) + Satoshi (body)
-   Density: dense (dashboard)
    ============================================================ */
 
 @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=swap');
@@ -22,6 +21,9 @@
   --green-hover:    #2d5431;
   --green-light:    #e8f2e9;
   --green-muted:    #6b9e70;
+
+  --orange:         #e07b39;
+  --orange-light:   #fdf0e6;
 
   --text-primary:   #2a1f14;
   --text-muted:     #7a6a58;
@@ -217,7 +219,7 @@ div[data-testid="stButton"] button:hover { background: var(--green-hover) !impor
 /* ── Noise zone badge ─────────────────────────────────────────── */
 .zone-badge {
   display: inline-flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-4); border-radius: var(--radius-full, 9999px);
+  padding: var(--space-2) var(--space-4); border-radius: 9999px;
   font-size: 0.8rem; font-weight: 600;
 }
 .zone-calme    { background: var(--green-light); color: var(--green-primary); }
@@ -248,9 +250,52 @@ div[data-testid="stButton"] button:hover { background: var(--green-hover) !impor
   display: flex; align-items: center; gap: var(--space-2);
 }
 
+/* ── Prix variation badge ─────────────────────────────────────── */
+.prix-variation {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 9999px;
+  font-size: 0.72rem; font-weight: 700; margin-top: var(--space-2);
+}
+.prix-variation-up   { background: #e8f5e9; color: #2D6A4F; }
+.prix-variation-down { background: #fdecea; color: #B00020; }
+.prix-variation-flat { background: var(--beige-surface); color: var(--text-muted); }
+
+/* ── Top communes bar list ───────────────────────────────────── */
+.commune-bar-list { display: flex; flex-direction: column; gap: 10px; }
+.commune-bar-item {
+  display: grid; grid-template-columns: 140px 1fr 90px;
+  grid-template-rows: auto auto; column-gap: 12px; align-items: center;
+}
+.commune-bar-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.commune-bar-wrap { background: var(--beige-surface); border-radius: 4px; height: 8px; }
+.commune-bar-fill { background: var(--green-primary); border-radius: 4px; height: 8px;
+  transition: width 400ms ease; }
+.commune-bar-prix { font-size: 0.78rem; font-weight: 700; color: var(--green-primary); text-align: right; }
+.commune-bar-sub  { grid-column: 1 / -1; font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; }
+
+/* ── Facility panels (gares, écoles, aéroport) ───────────────── */
+.facility-panel {
+  background: var(--beige-card); border: 1px solid var(--beige-border);
+  border-radius: var(--radius-md); padding: var(--space-4);
+  margin-top: var(--space-4); box-shadow: var(--shadow-sm);
+}
+.facility-panel-title {
+  font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+  color: var(--brown-dark); margin-bottom: var(--space-3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.facility-item {
+  font-size: 0.8rem; color: var(--text-primary);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--beige-surface);
+}
+.facility-item:last-child { border-bottom: none; }
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .kpi-grid   { grid-template-columns: repeat(2, 1fr); }
-  .two-col    { grid-template-columns: 1fr; }
-  .three-col  { grid-template-columns: 1fr; }
+  .kpi-grid        { grid-template-columns: repeat(2, 1fr); }
+  .two-col         { grid-template-columns: 1fr; }
+  .three-col       { grid-template-columns: 1fr; }
+  .commune-bar-item { grid-template-columns: 100px 1fr 80px; }
 }
