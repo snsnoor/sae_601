@@ -59,7 +59,6 @@ section[data-testid="stSidebar"] {
   background: var(--brown-dark) !important;
   border-right: none !important;
 }
-section[data-testid="stSidebar"] > div { padding: var(--space-6) var(--space-5) !important; }
 
 .sidebar-logo {
   display: flex; align-items: center; gap: var(--space-3);

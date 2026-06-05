@@ -53,17 +53,17 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     PAGES = [
-        ("Vue Globale",         "📊", "Indicateurs & cartographie"),
-        ("Trouver un logement", "🔍", "Recherche filtrée"),
-        ("Analyses",            "📈", "Corrélations & modèles"),
-        ("Impact DPE",          "⚡", "Prime énergétique (DVF × DPE)"),
-        ("Opportunités",        "💎", "Communes à fort potentiel (INSEE)"),
+        ("Vue Globale",         "Indicateurs & cartographie"),
+        ("Trouver un logement", "Recherche filtrée"),
+        ("Analyses",            "Corrélations & modèles"),
+        ("Impact DPE",          "Prime énergétique (DVF × DPE)"),
+        ("Opportunités",        "Communes à fort potentiel (INSEE)"),
     ]
 
     st.markdown('<div class="nav-section-label">Navigation</div>', unsafe_allow_html=True)
 
-    for name, icon, desc in PAGES:
-        if st.button(f"{icon}  {name}", key=f"nav_{name}", use_container_width=True, help=desc):
+    for name, desc in PAGES:
+        if st.button(name, key=f"nav_{name}", use_container_width=True, help=desc):
             st.session_state.page = name
             st.rerun()
 
@@ -186,8 +186,21 @@ def page_vue_globale():
             prix_md = f"{int(kpis['prix_m2_median']):,} €".replace(",", " ")
             surf_md = f"{int(kpis['surface_mediane'])} m²"
             periode = "DVF 2024-2025"
+
+            var_data  = back.get_variation_prix(region_selectionnee)
+            variation = var_data.get("variation")
+            if variation is not None:
+                if variation > 0:
+                    var_html = f'<div class="prix-variation prix-variation-up">↑ +{variation:.1f}% vs 2024</div>'
+                elif variation < 0:
+                    var_html = f'<div class="prix-variation prix-variation-down">↓ {variation:.1f}% vs 2024</div>'
+                else:
+                    var_html = f'<div class="prix-variation prix-variation-flat">→ {variation:.1f}% vs 2024</div>'
+            else:
+                var_html = ""
         else:
             nb_tx, nb_com, prix_md, surf_md, periode = ("847 320", "24 601", "3 480 €", "72 m²", "DVF 2020-2024 (démo)")
+            var_html = ""
 
         st.markdown(f"""
         <div class="kpi-grid">
@@ -201,10 +214,11 @@ def page_vue_globale():
             <div class="kpi-value">{nb_com}</div>
             <div class="kpi-sub">avec ventes 2024-2025</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card kpi-accent">
             <div class="kpi-label">Prix médian / m²</div>
             <div class="kpi-value">{prix_md}</div>
             <div class="kpi-sub">Maisons & Appartements</div>
+            {var_html}
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Surface médiane</div>
@@ -344,6 +358,34 @@ def page_vue_globale():
                 st.info("🗺️ Carte interactive disponible une fois la base initialisée (mode démo actif).")
             st.markdown("</div>", unsafe_allow_html=True)
 
+        # ── Top communes par type ─────────────────────────────────────────────────
+        if DB_READY:
+            df_top_types = back.get_top_communes_par_type(n=12, region=region_selectionnee)
+            if not df_top_types.empty:
+                max_prix = float(df_top_types['prix_tous'].max()) if df_top_types['prix_tous'].notna().any() else 1.0
+                rows_html = ""
+                for _, r in df_top_types.iterrows():
+                    pct    = int((float(r['prix_tous'] or 0) / max_prix) * 100) if max_prix else 0
+                    p_tous = f"{int(r['prix_tous']):,}".replace(',', ' ') + ' €' if pd.notna(r['prix_tous']) else '—'
+                    p_appt = f"{int(r['prix_appart']):,}".replace(',', ' ') if pd.notna(r['prix_appart']) else '—'
+                    p_mais = f"{int(r['prix_maison']):,}".replace(',', ' ') if pd.notna(r['prix_maison']) else '—'
+                    rows_html += f"""
+                    <div class="commune-bar-item">
+                      <div class="commune-bar-name">{str(r['nom_commune']).title()}</div>
+                      <div class="commune-bar-wrap">
+                        <div class="commune-bar-fill" style="width:{pct}%"></div>
+                      </div>
+                      <div class="commune-bar-prix">{p_tous}/m²</div>
+                      <div class="commune-bar-sub">Appt: {p_appt} · Maison: {p_mais}</div>
+                    </div>
+                    """
+                st.markdown(f"""
+                <div class="card" style="margin-top:16px;">
+                  <div class="card-title">🏘️ Top communes — Prix médian par type</div>
+                  <div class="commune-bar-list">{rows_html}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
         # ── Evolution mensuelle ────────────────────────────────────────────────────
         st.markdown("""
         <div class="card" style="margin-top:16px;">
@@ -381,6 +423,12 @@ def page_vue_globale():
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE 2 — TROUVER UN LOGEMENT
 # ─────────────────────────────────────────────────────────────────────────────
+@st.cache_data(ttl=300)
+def _get_communes_dispo():
+    """Liste des communes disponibles (mise en cache 5 min pour éviter une requête à chaque render)."""
+    return back.get_communes_dispo() if back.db_ready() else []
+
+
 @st.cache_data
 def charger_et_preparer_donnees(commune, type_local, nb_pieces, surface, budget_min, budget_max, prix_m2_max, dist_gare, dist_ecole):
     import pandas as pd
@@ -483,7 +531,12 @@ def page_trouver():
 
     c1, c2, c3, c4, c5, c6 = st.columns([2, 1.2, 0.9, 0.9, 1.5, 1.2])
     with c1:
-        commune_input = st.text_input("Commune", placeholder="Ex : Nantes, Lyon...", label_visibility="visible")
+        if DB_READY:
+            communes_dispo = _get_communes_dispo()
+            commune_choisie = st.selectbox("Commune", communes_dispo, index=0)
+            commune_input = "" if commune_choisie == "Toutes les communes" else commune_choisie
+        else:
+            commune_input = st.text_input("Commune", placeholder="Ex : Nantes, Lyon...")
     with c2:
         type_logement = st.selectbox("Type de logement", ["Tous", "Maison", "Appartement"], label_visibility="visible")
     with c3:
