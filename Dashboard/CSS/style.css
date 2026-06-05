@@ -117,18 +117,26 @@ section[data-testid="stSidebar"] {
   background: linear-gradient(180deg, var(--brown-dark) 0%, #2E2016 100%) !important;
   border-right: none !important;
   box-shadow: var(--shadow-md);
+  min-width: 210px !important;
+  max-width: 210px !important;
+  width: 210px !important;
 }
-section[data-testid="stSidebar"] > div { padding: var(--space-6) var(--space-5) !important; }
+section[data-testid="stSidebar"] > div {
+  padding: var(--space-5) var(--space-4) !important;
+  min-width: 210px !important;
+  max-width: 210px !important;
+  width: 210px !important;
+}
 
 .sidebar-logo {
-  display: flex; align-items: center; gap: var(--space-3);
-  margin-bottom: var(--space-8); padding-bottom: var(--space-6);
+  display: flex; align-items: center; gap: var(--space-2);
+  margin-bottom: var(--space-5); padding-bottom: var(--space-4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
-.sidebar-logo svg { flex-shrink: 0; color: var(--green-muted); }
-.sidebar-logo-text { font-family: var(--font-display); font-size: 1.25rem; font-weight: var(--fw-black);
+.sidebar-logo svg { flex-shrink: 0; color: var(--green-muted); width: 28px; height: 28px; }
+.sidebar-logo-text { font-family: var(--font-display); font-size: 1.05rem; font-weight: var(--fw-black);
   color: #fff; letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); }
-.sidebar-logo-sub  { font-size: var(--fs-caption); color: var(--brown-light); letter-spacing: var(--tracking-wide);
+.sidebar-logo-sub  { font-size: 0.6rem; color: var(--brown-light); letter-spacing: var(--tracking-wide);
   text-transform: uppercase; margin-top: 2px; line-height: var(--lh-snug); }
 
 .nav-section-label {
@@ -368,6 +376,22 @@ div[data-testid="stButton"] button {
   padding: var(--space-3) var(--space-6) !important;
   box-shadow: var(--shadow-sm) !important;
   transition: background 180ms ease, box-shadow 180ms ease, transform 120ms ease !important;
+}
+
+/* Boutons de navigation sidebar — plus compacts */
+section[data-testid="stSidebar"] div[data-testid="stButton"] button {
+  padding: 6px var(--space-3) !important;
+  font-size: var(--fs-label) !important;
+  font-weight: var(--fw-medium) !important;
+  text-align: left !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-sm) !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stButton"] button:hover {
+  background: rgba(255, 255, 255, 0.13) !important;
+  box-shadow: none !important;
+  transform: translateX(2px) !important;
 }
 div[data-testid="stButton"] button:hover {
   background: var(--green-hover) !important;

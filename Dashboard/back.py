@@ -147,6 +147,70 @@ def get_kpis(region=None) -> dict:
         "top_moins_cheres": df_top_moins_cheres
     }
 
+
+def get_variation_prix(region=None) -> dict:
+    """Variation du prix médian /m² entre 2024 et 2025."""
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    try:
+        row = con.execute(f"""
+            WITH par_annee AS (
+                SELECT
+                    YEAR(CAST(f.date_mutation AS DATE)) AS annee,
+                    MEDIAN(f.prix_m2) AS prix_m2
+                FROM fact_dvf f
+                JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+                WHERE f.prix_m2 IS NOT NULL
+                  AND f.type_local IN ('Maison', 'Appartement', 'Local industriel. commercial ou assimilé')
+                  {dept_filter}
+                GROUP BY annee
+            )
+            SELECT
+                p2024.prix_m2 AS prix_2024,
+                p2025.prix_m2 AS prix_2025,
+                CASE WHEN p2024.prix_m2 > 0
+                     THEN ROUND((p2025.prix_m2 - p2024.prix_m2) / p2024.prix_m2 * 100, 1)
+                     ELSE NULL END AS variation
+            FROM (SELECT prix_m2 FROM par_annee WHERE annee = 2024) p2024
+            CROSS JOIN (SELECT prix_m2 FROM par_annee WHERE annee = 2025) p2025
+        """).fetchone()
+        con.close()
+        if row is None:
+            return {"variation": None}
+        return {"variation": float(row[2]) if row[2] is not None else None}
+    except Exception:
+        con.close()
+        return {"variation": None}
+
+
+def get_top_communes_par_type(n: int = 12, region=None) -> pd.DataFrame:
+    """Top N communes par volume de ventes, avec prix médian par type."""
+    dept_filter = _get_dept_filter(region, "f")
+    con = _con()
+    try:
+        df = con.execute(f"""
+            SELECT
+                v.nom_commune,
+                COUNT(*) AS nb_transactions,
+                ROUND(MEDIAN(f.prix_m2), 0) AS prix_tous,
+                ROUND(MEDIAN(CASE WHEN f.type_local = 'Appartement' THEN f.prix_m2 END), 0) AS prix_appart,
+                ROUND(MEDIAN(CASE WHEN f.type_local = 'Maison' THEN f.prix_m2 END), 0) AS prix_maison
+            FROM fact_dvf f
+            JOIN dim_adresses v ON f.id_adresse = v.id_adresse
+            WHERE f.prix_m2 IS NOT NULL
+              AND f.type_local IN ('Maison', 'Appartement', 'Local industriel. commercial ou assimilé')
+              {dept_filter}
+            GROUP BY v.nom_commune
+            ORDER BY nb_transactions DESC
+            LIMIT {n}
+        """).df()
+        con.close()
+        return df
+    except Exception:
+        con.close()
+        return pd.DataFrame()
+
+
 def get_prix_median_par_commune(region=None, type_local=None, annee=None) -> pd.DataFrame:
     """
     Domain 7 : prix médian €/m² agrégé PAR code commune INSEE (clé du choroplèthe).
@@ -204,6 +268,8 @@ def get_prix_median_par_commune(region=None, type_local=None, annee=None) -> pd.
               {dept_filter}
             GROUP BY v.code_commune
             HAVING prix_m2_median IS NOT NULL
+               AND latitude IS NOT NULL
+               AND longitude IS NOT NULL
         """, type_params + annee_params).df()
     finally:
         con.close()  # ferme même en cas d'exception (pas de fuite de connexion)

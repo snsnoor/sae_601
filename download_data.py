@@ -352,9 +352,7 @@ print("\n--- Polygones communaux (choroplèthe, Domain 7) ---")
 import json
 
 COMMUNES_GEOJSON = DATA_DIR / "communes.geojson"
-if COMMUNES_GEOJSON.exists():
-    print("[OK] communes.geojson déjà présent, ignoré.")
-else:
+if True:  # toujours régénérer pour couvrir les nouveaux départements de selection.json
     features = []
     erreurs = 0
     for dept in departements:

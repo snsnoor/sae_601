@@ -37,7 +37,13 @@ def resoudre_departements(args) -> list:
     bruts = []
 
     if args.departements:
-        bruts = _parse_liste(args.departements)
+        raw = args.departements.strip()
+        if raw.lower() in ("all", "tous", "tout", "france"):
+            # Mot-clé spécial : prend tous les départements connus du mapping
+            bruts = sorted(config.departements_valides())
+            print(f"[INFO] --departements all → {len(bruts)} départements sélectionnés.")
+        else:
+            bruts = _parse_liste(raw)
 
     elif args.region:
         # On accepte le nom exact d'une région du mapping partagé
@@ -52,19 +58,11 @@ def resoudre_departements(args) -> list:
         bruts = list(depts)
 
     else:
-        # Fallback interactif : on demande à l'utilisateur de saisir les départements
-        print("Aucun argument fourni — mode interactif.")
-        print("Saisissez les départements séparés par des virgules (ex : 53,35),")
-        print("ou un nom de région (ex : Bretagne).")
-        saisie = input("Sélection > ").strip()
-        if not saisie:
-            print("[ERREUR] Sélection vide — abandon.")
-            sys.exit(1)
-        # Si la saisie correspond à un nom de région, on le résout, sinon liste de départements
-        if saisie in config.REGIONS_MAPPING and config.REGIONS_MAPPING[saisie]:
-            bruts = list(config.REGIONS_MAPPING[saisie])
-        else:
-            bruts = _parse_liste(saisie)
+        # Pas de --departements ni --region : on réutilise la sélection existante (selection.json).
+        # Cela permet de faire `python run.py --annees 2025` sans resaisir les départements.
+        current = config.get_departements()
+        print(f"[INFO] Aucun département fourni → réutilisation de la sélection actuelle : {current}")
+        bruts = current
 
     # Normalisation (padding à 2 chiffres, gestion Corse 2A/2B)
     normalises = [config._normaliser_dept(d) for d in bruts]

@@ -43,7 +43,7 @@ def run_step(titre, cmd):
 
 def main():
     ap = argparse.ArgumentParser(description="Pipeline complet SAE 601 (sélection → ETL → dashboard).")
-    ap.add_argument("--departements", help="Liste de départements, ex. 53,35")
+    ap.add_argument("--departements", help="Liste de départements ex. 53,35 — ou 'all' pour toute la France")
     ap.add_argument("--region", help="Nom de région, ex. Bretagne (alternative à --departements)")
     ap.add_argument("--annees", help="Liste d'années, ex. 2024,2025")
     ap.add_argument("--skip-download", action="store_true", help="Ne pas (re)télécharger les données")
