@@ -893,8 +893,8 @@ def search_properties(
     budget_min: float = 50_000,
     budget_max: float = 1_500_000,
     prix_m2_max: float = 20_000,
-    dist_gare_max: float = None,
-    dist_ecole_max: float = None
+    dist_gare_max: float = None,   # NOUVEAU
+    dist_ecole_max: float = None   # NOUVEAU
 ) -> pd.DataFrame:
     """Moteur de recherche multicritères avec calcul du prix moyen de la commune."""
     conditions = [
@@ -914,6 +914,7 @@ def search_properties(
         conditions.append("f.type_local = ?")
         params.append(type_local)
 
+    # Ajout des conditions de distance
     if dist_gare_max is not None:
         conditions.append("v.distance_gare_metres <= ?")
         params.append(dist_gare_max * 1000)
@@ -932,19 +933,7 @@ def search_properties(
 
 
 def _search_properties_query(con, where: str, params: list) -> pd.DataFrame:
-    """Exécute la requête comparables DPE-aware du moteur de recherche.
-
-    Extrait dans une fonction interne pour garder search_properties dans un bloc
-    try/finally lisible (la connexion est fermée par l'appelant même si execute lève).
-    """
-    # Domain 4 : estimateur "bonne affaire" renforcé par comparables DPE-aware.
-    # On garde la médiane communale globale (prix_m2_commune) comme repère de secours,
-    # MAIS on ajoute une référence plus fine prix_m2_comparable : médiane des ventes
-    # RÉCENTES de la MÊME commune, du MÊME type de bien et de la MÊME étiquette DPE
-    # ou d'une étiquette ADJACENTE (±1 cran, ex. pour D on compare à C/D/E). Cela évite
-    # de juger un bien classé G face à des biens A/B de la même commune.
-    # NOTE : "récentes" = on ne borne pas l'année ici (fact_dvf est déjà filtré par la
-    #        sélection de l'ETL) ; le grain temporel pourra être ajouté si besoin.
+    """Exécute la requête comparables DPE-aware du moteur de recherche."""
     df = con.execute(f"""
         WITH ventes_valides AS (
             -- Base commune : ventes propres servant à calculer toutes les médianes.
@@ -983,27 +972,22 @@ def _search_properties_query(con, where: str, params: list) -> pd.DataFrame:
             f.nombre_pieces_principales,
             f.type_local,
             v.etiquette_dpe,
-            -- Domain 5 : zone de bruit aéroportuaire (PEB) RÉELLE issue du rapprochement
-            -- spatial (NULL = hors zone PEB) + code OACI de l'aéroport concerné. Remplace
-            -- l'ancienne simulation np.random.choice côté front.
             v.zone_peb,
             v.code_oaci,
             ROUND(f.prix_m2, 0) AS prix_m2,
             ROUND(cm.prix_m2_commune, 0) AS prix_m2_commune,
-            -- Comparable DPE-aware : médiane des étiquettes voisines (±1 cran) dans la
-            -- commune, pondérée par le nb de comparables. Repli sur la médiane communale.
             ROUND(COALESCE(cmp.prix_m2_comparable, cm.prix_m2_commune), 0) AS prix_m2_comparable,
             COALESCE(cmp.nb_comparables, 0) AS nb_comparables,
             v.nom_gare_proche,
             ROUND(v.distance_gare_metres  / 1000.0, 2) AS dist_gare_km,
             v.nom_ecole_proche,
             ROUND(v.distance_ecole_metres / 1000.0, 2) AS dist_ecole_km,
+            COALESCE(CAST(v.numero AS VARCHAR) || ' ', '') || v.nom_voie AS adresse_complete,
             v.lat,
             v.lon
         FROM fact_dvf f
         JOIN dim_adresses v ON f.id_adresse = v.id_adresse
         LEFT JOIN commune_medians cm ON v.nom_commune = cm.nom_commune
-        -- Comparables : même commune, même type, étiquette identique OU adjacente (±1).
         LEFT JOIN LATERAL (
             SELECT
                 SUM(c.prix_m2_etiquette * c.nb_comparables) / NULLIF(SUM(c.nb_comparables), 0) AS prix_m2_comparable,

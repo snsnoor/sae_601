@@ -1,9 +1,10 @@
-# front.py — Immo France Dashboard (Version Finale Complète)
+# front.py
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
+import random
 import random
 import back
 import plotly.express as px
@@ -357,34 +358,6 @@ def page_vue_globale():
                 st.info("🗺️ Carte interactive disponible une fois la base initialisée (mode démo actif).")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── Top communes par type ─────────────────────────────────────────────────
-        if DB_READY:
-            df_top_types = back.get_top_communes_par_type(n=12, region=region_selectionnee)
-            if not df_top_types.empty:
-                max_prix = float(df_top_types['prix_tous'].max()) if df_top_types['prix_tous'].notna().any() else 1.0
-                rows_html = ""
-                for _, r in df_top_types.iterrows():
-                    pct    = int((float(r['prix_tous'] or 0) / max_prix) * 100) if max_prix else 0
-                    p_tous = f"{int(r['prix_tous']):,}".replace(',', ' ') + ' €' if pd.notna(r['prix_tous']) else '—'
-                    p_appt = f"{int(r['prix_appart']):,}".replace(',', ' ') if pd.notna(r['prix_appart']) else '—'
-                    p_mais = f"{int(r['prix_maison']):,}".replace(',', ' ') if pd.notna(r['prix_maison']) else '—'
-                    rows_html += f"""
-                    <div class="commune-bar-item">
-                      <div class="commune-bar-name">{str(r['nom_commune']).title()}</div>
-                      <div class="commune-bar-wrap">
-                        <div class="commune-bar-fill" style="width:{pct}%"></div>
-                      </div>
-                      <div class="commune-bar-prix">{p_tous}/m²</div>
-                      <div class="commune-bar-sub">Appt: {p_appt} · Maison: {p_mais}</div>
-                    </div>
-                    """
-                st.markdown(f"""
-                <div class="card" style="margin-top:16px;">
-                  <div class="card-title">🏘️ Top communes — Prix médian par type</div>
-                  <div class="commune-bar-list">{rows_html}</div>
-                </div>
-                """, unsafe_allow_html=True)
-
         # ── Evolution mensuelle ────────────────────────────────────────────────────
         st.markdown("""
         <div class="card" style="margin-top:16px;">
@@ -619,71 +592,54 @@ def page_trouver():
             
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── DÉPLACEMENT ICI : ESTIMATEUR DE PRIX (SOUS LE TABLEAU) ──
+        # ── NOUVEAUTÉ : CARTE DES BIENS INDIVIDUELS ──
         if not df_results.empty:
             st.markdown("""
-            <div class="card" style="margin-top:16px; padding-bottom: 10px;">
-              <div class="card-title">⚖️ Analyseur de prix individuel</div>
+            <div class="card" style="margin-top:16px; padding-bottom: 0;">
+              <div class="card-title">📍 Localisation des biens trouvés</div>
             """, unsafe_allow_html=True)
 
-            lignes_selectionnees = evenement_selection.selection.rows
+            df_map = df_results.dropna(subset=['lat', 'lon']).copy()
             
-            if lignes_selectionnees:
-                import plotly.graph_objects as go
-                idx = lignes_selectionnees[0] 
-                
-                nom_ville = str(df_results.iloc[idx]["nom_commune"]).title()
-                prix_bien_m2 = float(df_results.iloc[idx]["prix_m2"])
-                # Domain 4 : référence = comparables DPE-aware (repli médiane communale).
-                ref_val = df_results.iloc[idx].get("prix_m2_reference")
-                if pd.isna(ref_val) or not ref_val:
-                    ref_val = df_results.iloc[idx]["prix_m2_commune"]
-                prix_ville_m2 = float(ref_val)
-                statut_affaire = df_results.iloc[idx]["Évaluation"]
-                etiquette_bien = df_results.iloc[idx].get("etiquette_dpe")
+            if not df_map.empty:
+                # 💡 CRÉATION DE L'ADRESSE DIRECTEMENT DANS PANDAS
+                df_map['adresse_complete'] = df_map['nom_voie'].fillna('') + " " + df_map['code_postal'].astype(str)
 
-                # Domain 4 : badge DPE coloré du bien sélectionné (classes CSS .dpe-X).
-                st.markdown(
-                    f'<div style="margin-bottom:8px;">Étiquette énergétique (DPE) : '
-                    f'{dpe_badge_html(etiquette_bien)}</div>',
-                    unsafe_allow_html=True
-                )
+                if 'etiquette_dpe' in df_map.columns:
+                    df_map['etiquette_dpe'] = df_map['etiquette_dpe'].fillna('Non renseigné')
+                else:
+                    df_map['etiquette_dpe'] = 'Non renseigné'
 
-                fig_gauge = go.Figure(go.Indicator(
-                    mode = "gauge+number+delta",
-                    value = prix_bien_m2,
-                    title = {'text': f"<b>{nom_ville}</b> — {statut_affaire}", 'font': {'size': 14, 'family': 'Inter', 'color': "#3D2B1F"}},
-                    # Sémantique charte : hausse = surcoté (rouge), baisse = bonne affaire (vert).
-                    delta = {'reference': prix_ville_m2, 'increasing': {'color': "#B23A2E"}, 'decreasing': {'color': "#2D6A4F"}, 'font': {'size': 14}},
-                    gauge = {
-                        'axis': {'range': [None, max(prix_bien_m2, prix_ville_m2) * 1.3], 'tickfont': {'size': 10, 'color': "#3D2B1F"}},
-                        'bar': {'color': "#7A6A58"},
-                        'steps' : [
-                            # Sémantique charte : bonne affaire / neutre / surcoté.
-                            {'range': [0, prix_ville_m2 * 0.9], 'color': "#2D6A4F"},
-                            {'range': [prix_ville_m2 * 0.9, prix_ville_m2 * 1.1], 'color': "#C9A227"},
-                            {'range': [prix_ville_m2 * 1.1, max(prix_bien_m2, prix_ville_m2) * 1.3], 'color': "#B23A2E"}
-                        ],
-                        'threshold' : {'line': {'color': "#3D2B1F", 'width': 3}, 'thickness': 0.75, 'value': prix_ville_m2}
+                # Formatage du tooltip
+                hover_format = {
+                    "lat": False, "lon": False, 
+                    "nom_voie": False, "code_postal": False,
+                    "adresse_complete": True, 
+                    "prix_m2": ":.0f €/m²",
+                    "valeur_fonciere": ":.0f €",
+                    "surface_reelle_bati": ":.0f m²",
+                    "nombre_pieces_principales": True, 
+                    "etiquette_dpe": True
+                }
+
+                fig_biens = px.scatter_mapbox(
+                    df_map, lat="lat", lon="lon",
+                    hover_name="nom_commune", hover_data=hover_format, color_continuous_scale="YlOrRd",
+                    mapbox_style="carto-positron", zoom=11, opacity=0.8,
+                    labels={
+                        'prix_m2': 'Prix (€/m²)', 
+                        'valeur_fonciere': 'Prix total',
+                        'surface_reelle_bati': 'Surface', 
+                        'nombre_pieces_principales': 'Pièces', 
+                        'etiquette_dpe': 'Score DPE',
+                        'adresse_complete': 'Adresse'
                     }
-                ))
-
-                fig_gauge.update_layout(
-                    margin=dict(t=52, b=16, l=24, r=24),  # On aère les marges
-                    height=250,  # Hauteur suffisante pour éviter la superposition du texte
-                    font=dict(family="Satoshi, sans-serif", color="#3D2B1F"),
-                    paper_bgcolor=CHARTE["fig_bg"],
-                    hoverlabel=HOVER,
                 )
-
-                st.plotly_chart(fig_gauge, use_container_width=True)
-                # Légende sémantique de la jauge (verdict bonne affaire / neutre / surcoté).
-                st.caption("La barre marron = prix du bien ; le repère noir = prix de référence des comparables. "
-                           "🟢 sous −10 % = bonne affaire · 🟡 ±10 % = dans la moyenne · 🔴 au-delà de +10 % = surcoté.")
-            else:
-                st.info("💡 **Cliquez sur une ligne** du tableau ci-dessus pour comparer précisément "
-                        "ce bien au prix des biens comparables de sa commune.")
                 
+                fig_biens.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, height=400)
+                st.plotly_chart(fig_biens, use_container_width=True)
+            else:
+                st.info("Aucune coordonnée disponible pour afficher ces biens sur la carte.")
             st.markdown("</div>", unsafe_allow_html=True)
 
     with col_info:
@@ -932,50 +888,11 @@ def page_analyses():
                 )
                 st.plotly_chart(fig_aero, use_container_width=True)
 
-    # ── Matrice de correlation ─────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("""
-    <div class="card-title" style="margin-bottom:12px;font-size:0.95rem">
-      Matrice de correlation — variables numeriques cles
-    </div>
-    """, unsafe_allow_html=True)
-
-    if DB_READY:
-        surface_v  = df_prox["surface_reelle_bati"].values.astype(float)
-        mat_data   = np.column_stack([prix_m2, dist_gare, dist_eco, surface_v])
-        vars_labels = ["Prix/m²", "Dist. gare", "Dist. ecole", "Surface"]
-    else:
-        rng2 = np.random.default_rng(42)
-        n2 = 300
-        dg2  = rng2.exponential(scale=3, size=n2).clip(0.1, 20)
-        de2  = rng2.exponential(scale=2, size=n2).clip(0.1, 10)
-        pm2  = (3500 + rng2.normal(0, 1000, n2) - dg2 * 80).clip(500, 15000)
-        sf2  = rng2.normal(75, 30, n2).clip(15, 300)
-        np2  = (sf2 / 20 + rng2.normal(0, 0.5, n2)).clip(1, 8).astype(int)
-        mat_data    = np.column_stack([pm2, sf2, np2, dg2, de2])
-        vars_labels = ["Valeur", "Surface", "Nb pieces", "Dist. gare", "Dist. ecole"]
-
-    corr = np.corrcoef(mat_data.T)
-    fig3 = go.Figure(go.Heatmap(
-        z=corr, x=vars_labels, y=vars_labels,
-        # Échelle divergente charte : marron chaud (négatif) -> beige (0) -> vert (positif).
-        colorscale=[[0, CHARTE["accent"]], [0.5, CHARTE["fig_bg"]], [1, CHARTE["vert"]]],
-        zmin=-1, zmax=1,
-        text=[[f"{v:.2f}" for v in row] for row in corr],
-        texttemplate="%{text}",
-        hovertemplate="<b>%{x}</b> × <b>%{y}</b><br>r = %{z:.2f}<extra></extra>",
-        colorbar=dict(title="r", thickness=12, len=0.85,
-                      tickfont=dict(color=CHARTE["encre"], size=10)),
-    ))
-    styliser_figure(fig3, hauteur=340, marges=dict(t=12, b=12, l=8, r=8))
-    fig3.update_layout(xaxis=dict(showgrid=False), yaxis=dict(showgrid=False, autorange="reversed"))
-    st.plotly_chart(fig3, use_container_width=True)
-
     # ── Domain 6 : gentrification — revenu médian vs. croissance des prix ────────
     st.markdown("---")
     st.markdown("""
     <div class="card-title" style="margin-bottom:12px;font-size:0.95rem">
-      💎 Gentrification — Revenu médian (INSEE) vs. croissance des prix (YoY)
+      Gentrification — Revenu médian (INSEE) vs. croissance des prix (YoY)
     </div>
     """, unsafe_allow_html=True)
 
@@ -1028,38 +945,6 @@ def page_analyses():
             "Une pente positive suggère un effet de gentrification : les communes à revenu "
             "élevé sont aussi celles où les prix progressent le plus."
         )
-
-    # ── Domain TEMPS : évolution de la population communale (dimension temporelle) ──
-    st.markdown("""
-    <div class="card" style="margin-top:18px">
-      <div class="card-title" style="margin-bottom:12px">Évolution de la population (recensements INSEE)</div>
-    """, unsafe_allow_html=True)
-    df_pop_t = back.get_population_temporelle() if DB_READY else None
-    if df_pop_t is not None and not df_pop_t.empty:
-        fig_pop = go.Figure(go.Scatter(
-            x=df_pop_t["annee"], y=df_pop_t["population_totale"],
-            mode="lines+markers",
-            line=dict(color=CHARTE["vert"], width=3),
-            marker=dict(size=8, color=CHARTE["accent"]),
-            hovertemplate="Année %{x}<br>Population : %{y:,.0f}<extra></extra>",
-        ))
-        styliser_figure(fig_pop, hauteur=300, marges=dict(t=10, b=10, l=8, r=8))
-        fig_pop.update_layout(
-            xaxis=dict(title="Millésime du recensement", dtick=1, showgrid=False),
-            yaxis=dict(title="Population municipale totale", showgrid=True,
-                       gridcolor=CHARTE["grille"], tickformat=",.0f"),
-            separators=", ",
-        )
-        st.plotly_chart(fig_pop, use_container_width=True)
-        st.caption(
-            "Dimension temporelle (dim_commune_temporel) : la population communale est suivie "
-            "sur plusieurs millésimes (2020–2023) — illustration de la prise en compte du "
-            "temps dans le modèle de données (Slowly Changing Data)."
-        )
-    else:
-        st.caption("Données de population temporelle indisponibles (dim_commune_temporel absente).")
-    st.markdown("</div>", unsafe_allow_html=True)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE 4 — IMPACT DPE (Domain 4 — prime énergétique)

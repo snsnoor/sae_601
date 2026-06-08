@@ -43,17 +43,6 @@ commune code, normalized address, or spatial coordinates. **All six formats requ
 brief are ingested**: CSV (DVF, BAN, population), Excel (revenue, population), JSON/REST APIs
 (SNCF, ADEME DPE, geo.api.gouv), GeoJSON (communes, PEB), and **Shapefile** (schools).
 
-> **Note — schools source (revised 2026-06-05):** the schools source is the official
-> **Éducation nationale Opendatasoft dataset** (`data.education.gouv.fr`), ingested as a
-> **Shapefile** export (`.shp` inside a `.zip`, read by GeoPandas via `zip://`). This covers
-> the Shapefile format required by the brief; its parsing strategy is distinct (multi-file
-> archive, CRS from `.prj`, DBF 10-char field-name truncation). The earlier data.gouv
-> resource 302-redirected to the magosm/Magellium OSM WFS, which 400'd on the national bbox.
-
-> **Note — BAN (revised 2026-06-05):** the BAN is downloaded **per department**
-> (`adresses-{dept}.csv.gz`) and used to **geocode DVF rows that lack coordinates** — matched
-> by `numéro + normalized street + postal code` (string matching). Such rows used to be
-> silently dropped; they are now recovered. The full-France BAN is still avoided (dead weight).
 
 ## Pipeline Architecture
 
@@ -88,7 +77,7 @@ Pas besoin de créer un environnement virtuel — un `pip install` global dans A
 
 | Option | Effet |
 |---|---|
-| `--departements 53,35` | choisir les départements |
+| `--departements "53,35"` | choisir plusieurs départements |
 | `--region Bretagne` | choisir une région entière |
 | `--annees 2022,2023,2024` | choisir les années DVF |
 | `--skip-download` | réutiliser les fichiers `data/` déjà téléchargés |
