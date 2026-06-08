@@ -7,7 +7,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import shape
 
-# Config partagée (Domain 2) : départements/années sélectionnés + patron d'URL geo-DVF
+
 import config
 
 # Configuration de la base
@@ -63,14 +63,6 @@ tables_to_drop = [
 ]
 for t in tables_to_drop:
     con.execute(f"DROP TABLE IF EXISTS {t};")
-
-# ------------------- 1. (Supprimé) Table 'adresses' (BAN nationale) -------------------
-# DÉCISION Domain 8 (2026-06-05) : le chargement de la BAN nationale dans une table
-# 'adresses' est SUPPRIMÉ. geo-DVF fournit déjà les coordonnées (lat/lng) utilisées
-# par tout le pipeline (gares, écoles, PEB, DPE) ; cette table 'adresses' n'était
-# jamais interrogée puis droppée en fin de run — du code mort coûteux (fichier BAN
-# national très volumineux). La BAN pourra être réintroduite PAR DÉPARTEMENT plus tard
-# si une source dépourvue de coordonnées doit être géocodée (cf. download_data.py).
 
 # ------------------- 2. Table 'dvf' -------------------
 print("\n--- 2. Chargement et nettoyage des données DVF (par département × année) ---")
