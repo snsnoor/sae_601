@@ -1,15 +1,5 @@
 name: Python CI
 
-# CI minimale (Domain 8, 2026-06-05) :
-# - on installe les dépendances via pip + requirements.txt (PLUS de conda/environment.yml,
-#   ce fichier n'existe pas dans le dépôt) ;
-# - on lance flake8 en deux passes : une passe BLOQUANTE qui n'attrape que les erreurs de
-#   syntaxe / noms indéfinis, puis une passe de STYLE non bloquante (avertissements) ;
-# - on compile (py_compile) les scripts principaux comme smoke test, SANS exécuter l'ETL
-#   (celui-ci a besoin du réseau + DuckDB + fichiers de données, indisponibles en CI).
-# - PAS d'étape pytest : aucun vrai test n'existe encore (test_jointure.py est déprécié,
-#   ce n'est pas un test). À réintroduire quand de vrais tests seront ajoutés.
-
 on: [push, pull_request]
 
 jobs:
